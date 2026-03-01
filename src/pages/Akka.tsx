@@ -690,6 +690,47 @@ const FinalScene = () => {
         >
           💛
         </motion.div>
+
+        {/* Thambi sign-off */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 2.5, delay: 4, ease: "easeOut" }}
+          style={{ marginTop: "52px" }}
+        >
+          <motion.p
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(0.75rem, 2vw, 0.95rem)",
+              color: "rgba(255,255,255,0.35)",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: "10px",
+            }}
+          >
+            — with every beat of my heart
+          </motion.p>
+          <motion.p
+            animate={{
+              textShadow: [
+                "0 0 20px rgba(212,175,55,0.3)",
+                "0 0 40px rgba(212,175,55,0.6)",
+                "0 0 20px rgba(212,175,55,0.3)",
+              ],
+            }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(1.6rem, 4.5vw, 3rem)",
+              fontWeight: 700,
+              fontStyle: "italic",
+              color: "#f0d080",
+              lineHeight: 1.4,
+            }}
+          >
+            Your beloved Thambi 🤍
+          </motion.p>
+        </motion.div>
       </motion.div>
     </section>
   );
