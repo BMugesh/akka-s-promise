@@ -1,1229 +1,1471 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StockGenie – AI Powered Market Intelligence</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StockGenie – AI Powered Market Intelligence</title>
+    <link rel="icon" type="image/png" href="public/favicon.png" />
+    <link rel="shortcut icon" href="public/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    :root {
-      --gold: #d4af37;
-      --gold-light: #f0d080;
-      --cream: #fdf6e3;
-    }
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f0d080;
+            --cream: #fdf6e3;
+        }
 
-    html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    /* ═══════════════════════════════════════════
+        /* ═══════════════════════════════════════════
        PAGE 1 — STOCKGENIE
     ═══════════════════════════════════════════ */
-    #page1 {
-      position: relative;
-      min-height: 100vh;
-      background: #050a12;
-      overflow: hidden;
-      font-family: 'Inter', sans-serif;
-    }
+        #page1 {
+            position: relative;
+            min-height: 100vh;
+            background: #050a12;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
 
-    /* Animated grid */
-    #page1::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,200,150,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,200,150,0.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridPulse 8s linear infinite;
-      pointer-events: none;
-    }
+        /* Animated grid */
+        #page1::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 200, 150, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 200, 150, 0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridPulse 8s linear infinite;
+            pointer-events: none;
+        }
 
-    @keyframes gridPulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
+        @keyframes gridPulse {
 
-    /* Floating chart lines canvas */
-    #chartCanvas {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      opacity: 0.18;
-      pointer-events: none;
-    }
+            0%,
+            100% {
+                opacity: 0.5;
+            }
 
-    /* Top nav bar */
-    .sg-nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 50;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 60px;
-      background: rgba(5,10,18,0.8);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,200,150,0.08);
-    }
+            50% {
+                opacity: 1;
+            }
+        }
 
-    .sg-logo {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: #00c896;
-      letter-spacing: -0.5px;
-    }
-    .sg-logo span { color: #fff; }
+        /* Floating chart lines canvas */
+        #chartCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: 0.18;
+            pointer-events: none;
+        }
 
-    .sg-nav-links {
-      display: flex;
-      gap: 36px;
-      list-style: none;
-    }
-    .sg-nav-links a {
-      color: rgba(255,255,255,0.6);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    .sg-nav-links a:hover { color: #00c896; }
+        /* Top nav bar */
+        .sg-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 60px;
+            background: rgba(5, 10, 18, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 200, 150, 0.08);
+        }
 
-    .sg-nav-cta {
-      padding: 10px 24px;
-      background: #00c896;
-      color: #050a12;
-      border: none;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 0.875rem;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .sg-nav-cta:hover { opacity: 0.85; }
+        .sg-logo {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #00c896;
+            letter-spacing: -0.5px;
+        }
 
-    /* Hero content */
-    .sg-hero {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      text-align: center;
-      padding: 120px 40px 80px;
-    }
+        .sg-logo span {
+            color: #fff;
+        }
 
-    .sg-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      background: rgba(0,200,150,0.1);
-      border: 1px solid rgba(0,200,150,0.3);
-      border-radius: 100px;
-      color: #00c896;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 32px;
-    }
-    .sg-badge::before {
-      content: '';
-      width: 6px; height: 6px;
-      background: #00c896;
-      border-radius: 50%;
-      animation: blink 1.5s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+        .sg-nav-links {
+            display: flex;
+            gap: 36px;
+            list-style: none;
+        }
 
-    .sg-hero h1 {
-      font-size: clamp(2.8rem, 6vw, 5.5rem);
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: -2px;
-      line-height: 1.05;
-      max-width: 900px;
-      margin-bottom: 28px;
-    }
-    .sg-hero h1 .accent { color: #00c896; }
+        .sg-nav-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
 
-    .sg-hero .subtext {
-      font-size: clamp(1rem, 2vw, 1.35rem);
-      color: rgba(255,255,255,0.55);
-      font-weight: 400;
-      max-width: 560px;
-      line-height: 1.6;
-      margin-bottom: 52px;
-      font-style: italic;
-    }
+        .sg-nav-links a:hover {
+            color: #00c896;
+        }
 
-    .sg-hero-btns {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .sg-btn-primary {
-      padding: 16px 40px;
-      background: linear-gradient(135deg, #00c896, #00a07a);
-      color: #050a12;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 40px rgba(0,200,150,0.3);
-    }
-    .sg-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(0,200,150,0.5); }
-    .sg-btn-ghost {
-      padding: 16px 40px;
-      background: transparent;
-      color: rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: border-color 0.2s, color 0.2s;
-    }
-    .sg-btn-ghost:hover { border-color: #00c896; color: #00c896; }
+        .sg-nav-cta {
+            padding: 10px 24px;
+            background: #00c896;
+            color: #050a12;
+            border: none;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
 
-    /* Stats row */
-    .sg-stats {
-      position: relative;
-      z-index: 10;
-      display: flex;
-      justify-content: center;
-      gap: 80px;
-      padding: 60px 40px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-    .sg-stat-item { text-align: center; }
-    .sg-stat-item .val {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #00c896;
-    }
-    .sg-stat-item .lbl {
-      font-size: 0.8rem;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 4px;
-    }
+        .sg-nav-cta:hover {
+            opacity: 0.85;
+        }
 
-    /* Scroll indicator */
-    .sg-scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      color: rgba(255,255,255,0.3);
-      font-size: 0.75rem;
-      letter-spacing: 1px;
-    }
-    .sg-scroll-hint .arrow {
-      width: 20px; height: 30px;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 10px;
-      position: relative;
-    }
-    .sg-scroll-hint .arrow::after {
-      content: '';
-      position: absolute;
-      top: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px; height: 8px;
-      background: rgba(255,255,255,0.4);
-      border-radius: 2px;
-      animation: scrollDot 1.5s ease-in-out infinite;
-    }
-    @keyframes scrollDot { 0%{top:6px;opacity:1} 100%{top:16px;opacity:0} }
+        /* Hero content */
+        .sg-hero {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 120px 40px 80px;
+        }
 
-    /* Extra "content" sections to enable scrolling */
-    .sg-section {
-      position: relative;
-      z-index: 10;
-      padding: 100px 60px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .sg-section h2 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 20px;
-    }
-    .sg-section p {
-      color: rgba(255,255,255,0.5);
-      max-width: 600px;
-      line-height: 1.8;
-    }
-    .sg-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 24px;
-      margin-top: 48px;
-    }
-    .sg-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(0,200,150,0.1);
-      border-radius: 12px;
-      padding: 32px 28px;
-      transition: border-color 0.3s, transform 0.3s;
-    }
-    .sg-card:hover { border-color: rgba(0,200,150,0.4); transform: translateY(-4px); }
-    .sg-card .icon { font-size: 2rem; margin-bottom: 16px; }
-    .sg-card h3 { color: #fff; font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
-    .sg-card p { color: rgba(255,255,255,0.5); font-size: 0.9rem; line-height: 1.7; }
+        .sg-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(0, 200, 150, 0.1);
+            border: 1px solid rgba(0, 200, 150, 0.3);
+            border-radius: 100px;
+            color: #00c896;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+        }
 
-    /* ═══════════════════════════════════════════
+        .sg-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #00c896;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.2
+            }
+        }
+
+        .sg-hero h1 {
+            font-size: clamp(2.8rem, 6vw, 5.5rem);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: -2px;
+            line-height: 1.05;
+            max-width: 900px;
+            margin-bottom: 28px;
+        }
+
+        .sg-hero h1 .accent {
+            color: #00c896;
+        }
+
+        .sg-hero .subtext {
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 400;
+            max-width: 560px;
+            line-height: 1.6;
+            margin-bottom: 52px;
+            font-style: italic;
+        }
+
+        .sg-hero-btns {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sg-btn-primary {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #00c896, #00a07a);
+            color: #050a12;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 40px rgba(0, 200, 150, 0.3);
+        }
+
+        .sg-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 60px rgba(0, 200, 150, 0.5);
+        }
+
+        .sg-btn-ghost {
+            padding: 16px 40px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .sg-btn-ghost:hover {
+            border-color: #00c896;
+            color: #00c896;
+        }
+
+        /* Stats row */
+        .sg-stats {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            gap: 80px;
+            padding: 60px 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sg-stat-item {
+            text-align: center;
+        }
+
+        .sg-stat-item .val {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #00c896;
+        }
+
+        .sg-stat-item .lbl {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* Scroll indicator */
+        .sg-scroll-hint {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .sg-scroll-hint .arrow {
+            width: 20px;
+            height: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .sg-scroll-hint .arrow::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 2px;
+            animation: scrollDot 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scrollDot {
+            0% {
+                top: 6px;
+                opacity: 1
+            }
+
+            100% {
+                top: 16px;
+                opacity: 0
+            }
+        }
+
+        /* Extra "content" sections to enable scrolling */
+        .sg-section {
+            position: relative;
+            z-index: 10;
+            padding: 100px 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sg-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        .sg-section p {
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 600px;
+            line-height: 1.8;
+        }
+
+        .sg-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .sg-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 200, 150, 0.1);
+            border-radius: 12px;
+            padding: 32px 28px;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .sg-card:hover {
+            border-color: rgba(0, 200, 150, 0.4);
+            transform: translateY(-4px);
+        }
+
+        .sg-card .icon {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .sg-card h3 {
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .sg-card p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        /* ═══════════════════════════════════════════
        DIMMER OVERLAY (page1 darkens at 60%)
     ═══════════════════════════════════════════ */
-    #dimOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0);
-      z-index: 80;
-      pointer-events: none;
-      transition: background 0.6s ease;
-    }
-    #dimOverlay.active { background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); pointer-events: auto; }
+        #dimOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            z-index: 80;
+            pointer-events: none;
+            transition: background 0.6s ease;
+        }
 
-    /* ═══════════════════════════════════════════
+        #dimOverlay.active {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            pointer-events: auto;
+        }
+
+        /* ═══════════════════════════════════════════
        POPUP
     ═══════════════════════════════════════════ */
-    #popup {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(0.88);
-      z-index: 100;
-      background: rgba(8,14,24,0.97);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
-      padding: 56px 60px;
-      text-align: center;
-      max-width: 520px;
-      width: 90%;
-      box-shadow: 0 40px 120px rgba(0,0,0,0.8);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    #popup.visible {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: auto;
-    }
+        #popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.88);
+            z-index: 100;
+            background: rgba(8, 14, 24, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 56px 60px;
+            text-align: center;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 40px 120px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
 
-    .popup-line1 {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.1rem;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 12px;
-      font-weight: 300;
-      letter-spacing: 0.3px;
-    }
-    .popup-line2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 2.1rem;
-      color: #fff;
-      font-weight: 600;
-      margin-bottom: 48px;
-      line-height: 1.3;
-    }
+        #popup.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
 
-    .popup-btns { display: flex; gap: 16px; justify-content: center; }
+        .popup-line1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+            font-weight: 300;
+            letter-spacing: 0.3px;
+        }
 
-    .popup-yes {
-      padding: 14px 44px;
-      background: linear-gradient(135deg, #d4af37, #f0d080);
-      color: #0a0a0a;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: 0.5px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 0 30px rgba(212,175,55,0.4);
-    }
-    .popup-yes:hover { transform: scale(1.04); box-shadow: 0 0 50px rgba(212,175,55,0.6); }
+        .popup-line2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.1rem;
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 48px;
+            line-height: 1.3;
+        }
 
-    .popup-no {
-      padding: 14px 32px;
-      background: transparent;
-      color: rgba(255,255,255,0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: color 0.2s, border-color 0.2s;
-    }
-    .popup-no:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.25); }
+        .popup-btns {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
 
-    /* ═══════════════════════════════════════════
+        .popup-yes {
+            padding: 14px 44px;
+            background: linear-gradient(135deg, #d4af37, #f0d080);
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .popup-yes:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.6);
+        }
+
+        .popup-no {
+            padding: 14px 32px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .popup-no:hover {
+            color: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ═══════════════════════════════════════════
        FADE TO BLACK CURTAIN
     ═══════════════════════════════════════════ */
-    #blackCurtain {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.2s ease;
-    }
-    #blackCurtain.active { opacity: 1; pointer-events: auto; }
+        #blackCurtain {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.2s ease;
+        }
 
-    /* ═══════════════════════════════════════════
+        #blackCurtain.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ═══════════════════════════════════════════
        PAGE 2 — THE REAL WEBSITE
     ═══════════════════════════════════════════ */
-    #page2 {
-      position: fixed;
-      inset: 0;
-      z-index: 150;
-      background: #000;
-      opacity: 0;
-      overflow-y: auto;
-      pointer-events: none;
-      font-family: 'Cormorant Garamond', serif;
-    }
-    #page2.revealed {
-      opacity: 1;
-      pointer-events: auto;
-      transition: opacity 1.6s ease;
-    }
+        #page2 {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            background: #000;
+            opacity: 0;
+            overflow-y: auto;
+            pointer-events: none;
+            font-family: 'Cormorant Garamond', serif;
+        }
 
-    /* Particle canvas */
-    #particleCanvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
+        #page2.revealed {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 1.6s ease;
+        }
 
-    /* All sections inside page2 */
-    .p2-section {
-      position: relative;
-      z-index: 10;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 100px 40px;
-      text-align: center;
-    }
+        /* Particle canvas */
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
 
-    /* ─── HERO ─── */
-    #p2-hero { background: transparent; }
+        /* All sections inside page2 */
+        .p2-section {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 40px;
+            text-align: center;
+        }
 
-    .p2-hero-heading {
-      font-size: clamp(2.8rem, 6vw, 6rem);
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.5px;
-      line-height: 1.1;
-      max-width: 900px;
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 3s ease, transform 3s ease;
-    }
-    .p2-hero-heading.show { opacity: 1; transform: translateY(0); }
+        /* ─── HERO ─── */
+        #p2-hero {
+            background: transparent;
+        }
 
-    .p2-hero-sub {
-      margin-top: 32px;
-      font-size: clamp(1.2rem, 2.5vw, 1.7rem);
-      color: rgba(255,255,255,0.55);
-      font-weight: 300;
-      font-style: italic;
-      line-height: 1.8;
-      max-width: 600px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 3s ease 1s, transform 3s ease 1s;
-    }
-    .p2-hero-sub.show { opacity: 1; transform: translateY(0); }
+        .p2-hero-heading {
+            font-size: clamp(2.8rem, 6vw, 6rem);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+            max-width: 900px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 3s ease, transform 3s ease;
+        }
 
-    /* ─── Section 1: Realization ─── */
-    #p2-realization { background: transparent; }
+        .p2-hero-heading.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    .reveal-line {
-      font-size: clamp(1.4rem, 3vw, 2.2rem);
-      font-weight: 400;
-      color: rgba(255,255,255,0);
-      line-height: 1.7;
-      margin: 12px 0;
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 1.5s ease, transform 1.5s ease, color 1.5s ease;
-      max-width: 700px;
-    }
-    .reveal-line.lit {
-      opacity: 1;
-      color: rgba(255,255,255,0.88);
-      transform: translateY(0);
-    }
-    .reveal-line.bold-line {
-      font-weight: 700;
-      color: transparent;
-    }
-    .reveal-line.bold-line.lit { color: #fff; }
+        .p2-hero-sub {
+            margin-top: 32px;
+            font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 1.8;
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 3s ease 1s, transform 3s ease 1s;
+        }
 
-    /* ─── Section 2: Who I Am Now ─── */
-    #p2-who {
-      position: relative;
-      overflow: hidden;
-    }
-    #goldenGradient {
-      position: absolute;
-      bottom: -40%;
-      left: 0; right: 0;
-      height: 80%;
-      background: radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.15) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 4s ease;
-      pointer-events: none;
-    }
-    #goldenGradient.glow { opacity: 1; }
+        .p2-hero-sub.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    .p2-section-title {
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 40px;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 1.5s ease, transform 1.5s ease;
-    }
-    .p2-section-title.show { opacity: 1; transform: translateY(0); }
+        /* ─── Section 1: Realization ─── */
+        #p2-realization {
+            background: transparent;
+        }
 
-    .p2-text-block {
-      font-size: clamp(1.1rem, 2.2vw, 1.5rem);
-      color: rgba(255,255,255,0.72);
-      line-height: 2;
-      max-width: 640px;
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 2s ease 0.3s, transform 2s ease 0.3s;
-    }
-    .p2-text-block.show { opacity: 1; transform: translateY(0); }
+        .reveal-line {
+            font-size: clamp(1.4rem, 3vw, 2.2rem);
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0);
+            line-height: 1.7;
+            margin: 12px 0;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 1.5s ease, transform 1.5s ease, color 1.5s ease;
+            max-width: 700px;
+        }
 
-    .p2-refusal {
-      margin-top: 32px;
-      font-size: clamp(1.3rem, 2.8vw, 2rem);
-      font-weight: 700;
-      color: var(--gold);
-      opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 2s ease 0.6s, transform 2s ease 0.6s;
-    }
-    .p2-refusal.show { opacity: 1; transform: translateY(0); }
+        .reveal-line.lit {
+            opacity: 1;
+            color: rgba(255, 255, 255, 0.88);
+            transform: translateY(0);
+        }
 
-    /* ─── Section 3: The Promise ─── */
-    #p2-promise { background: transparent; }
+        .reveal-line.bold-line {
+            font-weight: 700;
+            color: transparent;
+        }
 
-    .promise-heading {
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 48px;
-      letter-spacing: -0.5px;
-      opacity: 0;
-      transition: opacity 2s ease;
-    }
-    .promise-heading.show { opacity: 1; }
+        .reveal-line.bold-line.lit {
+            color: #fff;
+        }
 
-    .promise-text {
-      font-size: clamp(1.15rem, 2vw, 1.6rem);
-      color: rgba(255,255,255,0.78);
-      line-height: 2.2;
-      max-width: 680px;
-      opacity: 0;
-      transition: opacity 2.5s ease 0.5s;
-    }
-    .promise-text.show { opacity: 1; }
+        /* ─── Section 2: Who I Am Now ─── */
+        #p2-who {
+            position: relative;
+            overflow: hidden;
+        }
 
-    .promise-climax {
-      margin-top: 48px;
-      font-size: clamp(1.4rem, 2.8vw, 2.2rem);
-      color: #fff;
-      font-weight: 600;
-      line-height: 2;
-      max-width: 680px;
-      opacity: 0;
-      transition: opacity 2.5s ease 1s;
-    }
-    .promise-climax.show { opacity: 1; }
+        #goldenGradient {
+            position: absolute;
+            bottom: -40%;
+            left: 0;
+            right: 0;
+            height: 80%;
+            background: radial-gradient(ellipse at 50% 100%, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 4s ease;
+            pointer-events: none;
+        }
 
-    .promise-final {
-      margin-top: 40px;
-      font-size: clamp(1.2rem, 2.2vw, 1.8rem);
-      color: rgba(255,255,255,0.65);
-      font-weight: 300;
-      font-style: italic;
-      line-height: 2;
-      max-width: 600px;
-      opacity: 0;
-      transition: opacity 2.5s ease 1.5s;
-    }
-    .promise-final.show { opacity: 1; }
+        #goldenGradient.glow {
+            opacity: 1;
+        }
 
-    .promise-identity {
-      margin-top: 40px;
-      font-size: clamp(1.5rem, 3vw, 2.5rem);
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.7;
-      max-width: 600px;
-      opacity: 0;
-      transition: opacity 2.5s ease 2s;
-    }
-    .promise-identity.show { opacity: 1; }
+        .p2-section-title {
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1.5s ease, transform 1.5s ease;
+        }
 
-    /* ─── Section 4: The Climax ─── */
-    #p2-climax {
-      background: transparent;
-    }
+        .p2-section-title.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    .climax-text {
-      font-size: clamp(2rem, 4.5vw, 4rem);
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.5;
-      max-width: 700px;
-      opacity: 0;
-      transition: opacity 2.5s ease;
-    }
-    .climax-text.show { opacity: 1; }
+        .p2-text-block {
+            font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.72);
+            line-height: 2;
+            max-width: 640px;
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 2s ease 0.3s, transform 2s ease 0.3s;
+        }
 
-    .climax-middle {
-      margin-top: 24px;
-      font-size: clamp(2rem, 4.5vw, 4rem);
-      font-weight: 700;
-      color: rgba(255,255,255,0.45);
-      opacity: 0;
-      transition: opacity 2.5s ease 0.8s;
-    }
-    .climax-middle.show { opacity: 1; }
+        .p2-text-block.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    .climax-end {
-      margin-top: 24px;
-      font-size: clamp(2rem, 4.5vw, 4rem);
-      font-weight: 700;
-      color: var(--gold-light);
-      opacity: 0;
-      transition: opacity 2.5s ease 1.6s;
-      text-shadow: 0 0 60px rgba(212,175,55,0.6);
-    }
-    .climax-end.show { opacity: 1; }
+        .p2-refusal {
+            margin-top: 32px;
+            font-size: clamp(1.3rem, 2.8vw, 2rem);
+            font-weight: 700;
+            color: var(--gold);
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 2s ease 0.6s, transform 2s ease 0.6s;
+        }
 
-    /* Shield */
-    .shield-wrap {
-      margin-top: 64px;
-      opacity: 0;
-      transform: scale(0.6);
-      transition: opacity 2s ease 2.5s, transform 2s ease 2.5s;
-    }
-    .shield-wrap.show {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .shield {
-      width: 80px;
-      height: 88px;
-      margin: 0 auto;
-      position: relative;
-    }
-    .shield svg {
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 0 20px rgba(212,175,55,0.8));
-    }
+        .p2-refusal.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    /* ─── Final Scene ─── */
-    #p2-final {
-      background: transparent;
-      position: relative;
-      overflow: hidden;
-    }
-    #warmBg {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 50%, rgba(180,120,30,0.18) 0%, rgba(212,175,55,0.06) 50%, transparent 80%);
-      opacity: 0;
-      transition: opacity 4s ease;
-    }
-    #warmBg.glow { opacity: 1; }
+        /* ─── Section 3: The Promise ─── */
+        #p2-promise {
+            background: transparent;
+        }
 
-    .final-dedication {
-      font-size: clamp(1.2rem, 2.5vw, 2rem);
-      font-weight: 400;
-      color: rgba(255,255,255,0.7);
-      font-style: italic;
-      line-height: 1.8;
-      opacity: 0;
-      transition: opacity 3s ease;
-    }
-    .final-dedication.show { opacity: 1; }
+        .promise-heading {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 48px;
+            letter-spacing: -0.5px;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
 
-    .final-signature-wrap {
-      margin-top: 60px;
-      opacity: 0;
-      transition: opacity 3s ease 1.5s;
-    }
-    .final-signature-wrap.show { opacity: 1; }
+        .promise-heading.show {
+            opacity: 1;
+        }
 
-    .final-signature {
-      font-size: clamp(3rem, 7vw, 7rem);
-      font-weight: 900;
-      color: var(--gold);
-      letter-spacing: 8px;
-      text-shadow:
-        0 0 40px rgba(212,175,55,0.8),
-        0 0 80px rgba(212,175,55,0.4),
-        0 0 120px rgba(212,175,55,0.2);
-      animation: heartbeat 2.2s ease-in-out infinite;
-    }
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); text-shadow: 0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4); }
-      15% { transform: scale(1.06); text-shadow: 0 0 60px rgba(212,175,55,1.0), 0 0 120px rgba(212,175,55,0.7), 0 0 180px rgba(212,175,55,0.3); }
-      30% { transform: scale(1); }
-      45% { transform: scale(1.03); text-shadow: 0 0 50px rgba(212,175,55,0.9), 0 0 100px rgba(212,175,55,0.5); }
-      60% { transform: scale(1); }
-    }
+        .promise-text {
+            font-size: clamp(1.15rem, 2vw, 1.6rem);
+            color: rgba(255, 255, 255, 0.78);
+            line-height: 2.2;
+            max-width: 680px;
+            opacity: 0;
+            transition: opacity 2.5s ease 0.5s;
+        }
 
-    .final-sparkle {
-      font-size: 2.5rem;
-      display: block;
-      margin-top: 16px;
-      animation: sparkle 3s ease-in-out infinite;
-    }
-    @keyframes sparkle {
-      0%,100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.15); }
-    }
+        .promise-text.show {
+            opacity: 1;
+        }
 
-  </style>
+        .promise-climax {
+            margin-top: 48px;
+            font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+            color: #fff;
+            font-weight: 600;
+            line-height: 2;
+            max-width: 680px;
+            opacity: 0;
+            transition: opacity 2.5s ease 1s;
+        }
+
+        .promise-climax.show {
+            opacity: 1;
+        }
+
+        .promise-final {
+            margin-top: 40px;
+            font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 300;
+            font-style: italic;
+            line-height: 2;
+            max-width: 600px;
+            opacity: 0;
+            transition: opacity 2.5s ease 1.5s;
+        }
+
+        .promise-final.show {
+            opacity: 1;
+        }
+
+        .promise-identity {
+            margin-top: 40px;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.7;
+            max-width: 600px;
+            opacity: 0;
+            transition: opacity 2.5s ease 2s;
+        }
+
+        .promise-identity.show {
+            opacity: 1;
+        }
+
+        /* ─── Section 4: The Climax ─── */
+        #p2-climax {
+            background: transparent;
+        }
+
+        .climax-text {
+            font-size: clamp(2rem, 4.5vw, 4rem);
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.5;
+            max-width: 700px;
+            opacity: 0;
+            transition: opacity 2.5s ease;
+        }
+
+        .climax-text.show {
+            opacity: 1;
+        }
+
+        .climax-middle {
+            margin-top: 24px;
+            font-size: clamp(2rem, 4.5vw, 4rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.45);
+            opacity: 0;
+            transition: opacity 2.5s ease 0.8s;
+        }
+
+        .climax-middle.show {
+            opacity: 1;
+        }
+
+        .climax-end {
+            margin-top: 24px;
+            font-size: clamp(2rem, 4.5vw, 4rem);
+            font-weight: 700;
+            color: var(--gold-light);
+            opacity: 0;
+            transition: opacity 2.5s ease 1.6s;
+            text-shadow: 0 0 60px rgba(212, 175, 55, 0.6);
+        }
+
+        .climax-end.show {
+            opacity: 1;
+        }
+
+        /* Shield */
+        .shield-wrap {
+            margin-top: 64px;
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity 2s ease 2.5s, transform 2s ease 2.5s;
+        }
+
+        .shield-wrap.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .shield {
+            width: 80px;
+            height: 88px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .shield svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.8));
+        }
+
+        /* ─── Final Scene ─── */
+        #p2-final {
+            background: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #warmBg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(180, 120, 30, 0.18) 0%, rgba(212, 175, 55, 0.06) 50%, transparent 80%);
+            opacity: 0;
+            transition: opacity 4s ease;
+        }
+
+        #warmBg.glow {
+            opacity: 1;
+        }
+
+        .final-dedication {
+            font-size: clamp(1.2rem, 2.5vw, 2rem);
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            line-height: 1.8;
+            opacity: 0;
+            transition: opacity 3s ease;
+        }
+
+        .final-dedication.show {
+            opacity: 1;
+        }
+
+        .final-signature-wrap {
+            margin-top: 60px;
+            opacity: 0;
+            transition: opacity 3s ease 1.5s;
+        }
+
+        .final-signature-wrap.show {
+            opacity: 1;
+        }
+
+        .final-signature {
+            font-size: clamp(3rem, 7vw, 7rem);
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 8px;
+            text-shadow:
+                0 0 40px rgba(212, 175, 55, 0.8),
+                0 0 80px rgba(212, 175, 55, 0.4),
+                0 0 120px rgba(212, 175, 55, 0.2);
+            animation: heartbeat 2.2s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 0 80px rgba(212, 175, 55, 0.4);
+            }
+
+            15% {
+                transform: scale(1.06);
+                text-shadow: 0 0 60px rgba(212, 175, 55, 1.0), 0 0 120px rgba(212, 175, 55, 0.7), 0 0 180px rgba(212, 175, 55, 0.3);
+            }
+
+            30% {
+                transform: scale(1);
+            }
+
+            45% {
+                transform: scale(1.03);
+                text-shadow: 0 0 50px rgba(212, 175, 55, 0.9), 0 0 100px rgba(212, 175, 55, 0.5);
+            }
+
+            60% {
+                transform: scale(1);
+            }
+        }
+
+        .final-sparkle {
+            font-size: 2.5rem;
+            display: block;
+            margin-top: 16px;
+            animation: sparkle 3s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.15);
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<!-- ═══════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════
      PAGE 1 — STOCKGENIE
 ═══════════════════════════════════════════════════════ -->
-<div id="page1">
+    <div id="page1">
 
-  <!-- Floating chart canvas -->
-  <canvas id="chartCanvas"></canvas>
+        <!-- Floating chart canvas -->
+        <canvas id="chartCanvas"></canvas>
 
-  <!-- Nav -->
-  <nav class="sg-nav">
-    <div class="sg-logo">Stock<span>Genie</span></div>
-    <ul class="sg-nav-links">
-      <li><a href="#">Features</a></li>
-      <li><a href="#">Markets</a></li>
-      <li><a href="#">Pricing</a></li>
-      <li><a href="#">About</a></li>
-    </ul>
-    <button class="sg-nav-cta">Start Free Trial</button>
-  </nav>
+        <!-- Nav -->
+        <nav class="sg-nav">
+            <div class="sg-logo">Stock<span>Genie</span></div>
+            <ul class="sg-nav-links">
+                <li><a href="#">Features</a></li>
+                <li><a href="#">Markets</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+            <button class="sg-nav-cta">Start Free Trial</button>
+        </nav>
 
-  <!-- Hero -->
-  <section class="sg-hero">
-    <div class="sg-badge">Now in Beta · 12,000+ Traders</div>
-    <h1>StockGenie — <br><span class="accent">AI Powered</span><br>Market Intelligence</h1>
-    <p class="subtext">"Predict smarter. Trade sharper. Win consistently."</p>
-    <div class="sg-hero-btns">
-      <button class="sg-btn-primary">Get Started Free</button>
-      <button class="sg-btn-ghost">View Live Demo →</button>
+        <!-- Hero -->
+        <section class="sg-hero">
+            <div class="sg-badge">Now in Beta · 12,000+ Traders</div>
+            <h1>StockGenie — <br><span class="accent">AI Powered</span><br>Market Intelligence</h1>
+            <p class="subtext">"Predict smarter. Trade sharper. Win consistently."</p>
+            <div class="sg-hero-btns">
+                <button class="sg-btn-primary">Get Started Free</button>
+                <button class="sg-btn-ghost">View Live Demo →</button>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <div class="sg-stats">
+            <div class="sg-stat-item">
+                <div class="val">94.7%</div>
+                <div class="lbl">Signal Accuracy</div>
+            </div>
+            <div class="sg-stat-item">
+                <div class="val">$2.1B+</div>
+                <div class="lbl">Trades Analyzed</div>
+            </div>
+            <div class="sg-stat-item">
+                <div class="val">40ms</div>
+                <div class="lbl">Latency</div>
+            </div>
+            <div class="sg-stat-item">
+                <div class="val">180+</div>
+                <div class="lbl">Markets</div>
+            </div>
+        </div>
+
+        <!-- Extra content so scrolling is possible -->
+        <section class="sg-section">
+            <h2>Institutional-Grade Intelligence.<br>Retail-Friendly Interface.</h2>
+            <p>From pattern recognition to real-time news sentiment, StockGenie processes millions of data points so you
+                don't have to. Focus on strategy, not noise.</p>
+            <div class="sg-cards">
+                <div class="sg-card">
+                    <div class="icon">🧠</div>
+                    <h3>Predictive AI Engine</h3>
+                    <p>Our proprietary transformer model analyzes 30+ technical indicators simultaneously to surface
+                        high-confidence trade signals.</p>
+                </div>
+                <div class="sg-card">
+                    <div class="icon">⚡</div>
+                    <h3>Sub-40ms Execution</h3>
+                    <p>Co-located infrastructure near major exchanges ensures you never miss a micro-second of
+                        opportunity.</p>
+                </div>
+                <div class="sg-card">
+                    <div class="icon">🛡️</div>
+                    <h3>Risk-First Portfolio</h3>
+                    <p>Dynamic stop-loss algorithms and position sizing guided by real-time volatility modeling.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scroll hint -->
+        <div class="sg-scroll-hint">
+            <div class="arrow"></div>
+            SCROLL
+        </div>
+
+    </div><!-- /page1 -->
+
+    <!-- Dim overlay -->
+    <div id="dimOverlay"></div>
+
+    <!-- Popup -->
+    <div id="popup">
+        <p class="popup-line1">There is something more important than this project.</p>
+        <p class="popup-line2">"Do you want to continue?"</p>
+        <div class="popup-btns">
+            <button class="popup-yes" id="btnYes">YES</button>
+            <button class="popup-no" id="btnNo">Not Now</button>
+        </div>
     </div>
-  </section>
 
-  <!-- Stats -->
-  <div class="sg-stats">
-    <div class="sg-stat-item"><div class="val">94.7%</div><div class="lbl">Signal Accuracy</div></div>
-    <div class="sg-stat-item"><div class="val">$2.1B+</div><div class="lbl">Trades Analyzed</div></div>
-    <div class="sg-stat-item"><div class="val">40ms</div><div class="lbl">Latency</div></div>
-    <div class="sg-stat-item"><div class="val">180+</div><div class="lbl">Markets</div></div>
-  </div>
+    <!-- Black curtain for transition -->
+    <div id="blackCurtain"></div>
 
-  <!-- Extra content so scrolling is possible -->
-  <section class="sg-section">
-    <h2>Institutional-Grade Intelligence.<br>Retail-Friendly Interface.</h2>
-    <p>From pattern recognition to real-time news sentiment, StockGenie processes millions of data points so you don't have to. Focus on strategy, not noise.</p>
-    <div class="sg-cards">
-      <div class="sg-card">
-        <div class="icon">🧠</div>
-        <h3>Predictive AI Engine</h3>
-        <p>Our proprietary transformer model analyzes 30+ technical indicators simultaneously to surface high-confidence trade signals.</p>
-      </div>
-      <div class="sg-card">
-        <div class="icon">⚡</div>
-        <h3>Sub-40ms Execution</h3>
-        <p>Co-located infrastructure near major exchanges ensures you never miss a micro-second of opportunity.</p>
-      </div>
-      <div class="sg-card">
-        <div class="icon">🛡️</div>
-        <h3>Risk-First Portfolio</h3>
-        <p>Dynamic stop-loss algorithms and position sizing guided by real-time volatility modeling.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Scroll hint -->
-  <div class="sg-scroll-hint">
-    <div class="arrow"></div>
-    SCROLL
-  </div>
-
-</div><!-- /page1 -->
-
-<!-- Dim overlay -->
-<div id="dimOverlay"></div>
-
-<!-- Popup -->
-<div id="popup">
-  <p class="popup-line1">There is something more important than this project.</p>
-  <p class="popup-line2">"Do you want to continue?"</p>
-  <div class="popup-btns">
-    <button class="popup-yes" id="btnYes">YES</button>
-    <button class="popup-no" id="btnNo">Not Now</button>
-  </div>
-</div>
-
-<!-- Black curtain for transition -->
-<div id="blackCurtain"></div>
-
-<!-- ═══════════════════════════════════════════════════════
+    <!-- ═══════════════════════════════════════════════════════
      PAGE 2 — THE REAL WEBSITE
 ═══════════════════════════════════════════════════════ -->
-<div id="page2">
+    <div id="page2">
 
-  <canvas id="particleCanvas"></canvas>
+        <canvas id="particleCanvas"></canvas>
 
-  <!-- HERO -->
-  <section class="p2-section" id="p2-hero">
-    <h1 class="p2-hero-heading" id="mainHeading">AKKA… I Finally Understand<br>What You Mean To Me.</h1>
-    <p class="p2-hero-sub" id="mainSub">
-      "Not just in words.<br>
-      But in who I choose to become."
-    </p>
-  </section>
+        <!-- HERO -->
+        <section class="p2-section" id="p2-hero">
+            <h1 class="p2-hero-heading" id="mainHeading">AKKA… I Finally Understand<br>What You Mean To Me.</h1>
+            <p class="p2-hero-sub" id="mainSub">
+                "Not just in words.<br>
+                But in who I choose to become."
+            </p>
+        </section>
 
-  <!-- SECTION 1: Realization -->
-  <section class="p2-section" id="p2-realization">
-    <p class="reveal-line" id="r1">"I didn't understand you before."</p>
-    <p class="reveal-line" id="r2">"I didn't value what you did for me."</p>
-    <p class="reveal-line" id="r3">"Instead of giving love…<br>I gave hurt."</p>
-    <p class="reveal-line bold-line" id="r4">"Instead of protecting you…<br>I caused pain."</p>
-    <p class="reveal-line bold-line" id="r5" style="margin-top:40px;">"And you never deserved that."</p>
-  </section>
+        <!-- SECTION 1: Realization -->
+        <section class="p2-section" id="p2-realization">
+            <p class="reveal-line" id="r1">"I didn't understand you before."</p>
+            <p class="reveal-line" id="r2">"I didn't value what you did for me."</p>
+            <p class="reveal-line" id="r3">"Instead of giving love…<br>I gave hurt."</p>
+            <p class="reveal-line bold-line" id="r4">"Instead of protecting you…<br>I caused pain."</p>
+            <p class="reveal-line bold-line" id="r5" style="margin-top:40px;">"And you never deserved that."</p>
+        </section>
 
-  <!-- SECTION 2: Who I Am Now -->
-  <section class="p2-section" id="p2-who">
-    <div id="goldenGradient"></div>
-    <h2 class="p2-section-title" id="whoTitle">"I Am Not The Same Person."</h2>
-    <p class="p2-text-block" id="whoText">
-      "I have reflected.<br>
-      I have thought.<br>
-      I have grown.<br><br>
-      I looked at myself honestly.<br><br>
-      And I didn't like the brother I was becoming."
-    </p>
-    <p class="p2-refusal" id="whoRefusal">"But I refuse to stay that way."</p>
-  </section>
+        <!-- SECTION 2: Who I Am Now -->
+        <section class="p2-section" id="p2-who">
+            <div id="goldenGradient"></div>
+            <h2 class="p2-section-title" id="whoTitle">"I Am Not The Same Person."</h2>
+            <p class="p2-text-block" id="whoText">
+                "I have reflected.<br>
+                I have thought.<br>
+                I have grown.<br><br>
+                I looked at myself honestly.<br><br>
+                And I didn't like the brother I was becoming."
+            </p>
+            <p class="p2-refusal" id="whoRefusal">"But I refuse to stay that way."</p>
+        </section>
 
-  <!-- SECTION 3: The Promise -->
-  <section class="p2-section" id="p2-promise">
-    <h2 class="promise-heading" id="promiseTitle">My Promise As Your Brother</h2>
-    <p class="promise-text" id="promiseText">
-      "I promise I have changed.<br><br>
-      I will never repeat the mistakes of my past.<br><br>
-      If any issue arises,<br>
-      I will solve it calmly instead of overreacting.<br><br>
-      I will understand before I speak.<br>
-      I will listen before I judge.<br><br>
-      I will not let anger control me.<br>
-      I will not let ego hurt you again."
-    </p>
-    <p class="promise-climax" id="promiseClimax">
-      "In every situation —<br>
-      Good days.<br>
-      Bad days.<br>
-      Your happiest wins.<br>
-      Your toughest battles.<br><br>
-      I will be there."
-    </p>
-    <p class="promise-final" id="promiseFinal">
-      "As long as I live,<br>
-      I will never leave you.<br><br>
-      As long as I breathe,<br>
-      I will stand beside you."
-    </p>
-    <p class="promise-identity" id="promiseIdentity">
-      "Not just as a sibling by name.<br><br>
-      But as your brother.<br><br>
-      <em style="color:var(--gold)">The brother you needed.</em>"
-    </p>
-  </section>
+        <!-- SECTION 3: The Promise -->
+        <section class="p2-section" id="p2-promise">
+            <h2 class="promise-heading" id="promiseTitle">My Promise As Your Brother</h2>
+            <p class="promise-text" id="promiseText">
+                "I promise I have changed.<br><br>
+                I will never repeat the mistakes of my past.<br><br>
+                If any issue arises,<br>
+                I will solve it calmly instead of overreacting.<br><br>
+                I will understand before I speak.<br>
+                I will listen before I judge.<br><br>
+                I will not let anger control me.<br>
+                I will not let ego hurt you again."
+            </p>
+            <p class="promise-climax" id="promiseClimax">
+                "In every situation —<br>
+                Good days.<br>
+                Bad days.<br>
+                Your happiest wins.<br>
+                Your toughest battles.<br><br>
+                I will be there."
+            </p>
+            <p class="promise-final" id="promiseFinal">
+                "As long as I live,<br>
+                I will never leave you.<br><br>
+                As long as I breathe,<br>
+                I will stand beside you."
+            </p>
+            <p class="promise-identity" id="promiseIdentity">
+                "Not just as a sibling by name.<br><br>
+                But as your brother.<br><br>
+                <em style="color:var(--gold)">The brother you needed.</em>"
+            </p>
+        </section>
 
-  <!-- SECTION 4: The Climax -->
-  <section class="p2-section" id="p2-climax">
-    <p class="climax-text" id="climaxLine1">"You deserved better from me."</p>
-    <p class="climax-middle" id="climaxLine2">"And from today…"</p>
-    <p class="climax-end" id="climaxLine3">"You will have it."</p>
-    <div class="shield-wrap" id="shieldEl">
-      <div class="shield">
-        <svg viewBox="0 0 100 112" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
-                fill="rgba(212,175,55,0.12)"
-                stroke="rgba(212,175,55,0.9)"
-                stroke-width="2.5"/>
-          <path d="M50 18 L80 30 L80 56 C80 72 50 94 50 94 C50 94 20 72 20 56 L20 30 Z"
-                fill="rgba(212,175,55,0.06)"
-                stroke="rgba(212,175,55,0.5)"
-                stroke-width="1.5"/>
-          <path d="M35 54 L46 65 L68 44" stroke="rgba(212,175,55,1)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
-  </section>
+        <!-- SECTION 4: The Climax -->
+        <section class="p2-section" id="p2-climax">
+            <p class="climax-text" id="climaxLine1">"You deserved better from me."</p>
+            <p class="climax-middle" id="climaxLine2">"And from today…"</p>
+            <p class="climax-end" id="climaxLine3">"You will have it."</p>
+            <div class="shield-wrap" id="shieldEl">
+                <div class="shield">
+                    <svg viewBox="0 0 100 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
+                            fill="rgba(212,175,55,0.12)" stroke="rgba(212,175,55,0.9)" stroke-width="2.5" />
+                        <path d="M50 18 L80 30 L80 56 C80 72 50 94 50 94 C50 94 20 72 20 56 L20 30 Z"
+                            fill="rgba(212,175,55,0.06)" stroke="rgba(212,175,55,0.5)" stroke-width="1.5" />
+                        <path d="M35 54 L46 65 L68 44" stroke="rgba(212,175,55,1)" stroke-width="4"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+            </div>
+        </section>
 
-  <!-- FINAL SCENE -->
-  <section class="p2-section" id="p2-final">
-    <div id="warmBg"></div>
-    <p class="final-dedication" id="finalDedication">
-      "For Anu &amp; Kruthika —<br>
-      With Love. Always."
-    </p>
-    <div class="final-signature-wrap" id="finalSigWrap">
-      <span class="final-signature">✨ AKKA ✨</span>
-      <span class="final-sparkle">💛</span>
-    </div>
-  </section>
+        <!-- FINAL SCENE -->
+        <section class="p2-section" id="p2-final">
+            <div id="warmBg"></div>
+            <p class="final-dedication" id="finalDedication">
+                "For Anu &amp; Kruthika —<br>
+                With Love. Always."
+            </p>
+            <div class="final-signature-wrap" id="finalSigWrap">
+                <span class="final-signature">✨ AKKA ✨</span>
+                <span class="final-sparkle">💛</span>
+            </div>
+        </section>
 
-</div><!-- /page2 -->
+    </div><!-- /page2 -->
 
 
-<script>
-/* ════════════════════════════════════════════════
-   CHART CANVAS — floating stock lines on page1
-════════════════════════════════════════════════ */
-(function() {
-  const canvas = document.getElementById('chartCanvas');
-  const ctx = canvas.getContext('2d');
-  let W, H;
-  const lines = [];
+    <script>
+        /* ════════════════════════════════════════════════
+           CHART CANVAS — floating stock lines on page1
+        ════════════════════════════════════════════════ */
+        (function () {
+            const canvas = document.getElementById('chartCanvas');
+            const ctx = canvas.getContext('2d');
+            let W, H;
+            const lines = [];
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
 
-  function generateLine() {
-    const y = Math.random() * H * 0.8 + H * 0.1;
-    const points = [];
-    const numPts = 80 + Math.floor(Math.random() * 60);
-    let cx = -50;
-    let cy = y;
-    for (let i = 0; i < numPts; i++) {
-      cx += (W + 100) / numPts;
-      cy += (Math.random() - 0.48) * 28;
-      cy = Math.max(50, Math.min(H - 50, cy));
-      points.push({ x: cx, y: cy });
-    }
-    return {
-      points,
-      offset: 0,
-      speed: 0.2 + Math.random() * 0.4,
-      color: Math.random() > 0.5 ? '#00c896' : '#1a6fff',
-      alpha: 0.3 + Math.random() * 0.5,
-      width: 1 + Math.random() * 1.2,
-    };
-  }
+            function generateLine() {
+                const y = Math.random() * H * 0.8 + H * 0.1;
+                const points = [];
+                const numPts = 80 + Math.floor(Math.random() * 60);
+                let cx = -50;
+                let cy = y;
+                for (let i = 0; i < numPts; i++) {
+                    cx += (W + 100) / numPts;
+                    cy += (Math.random() - 0.48) * 28;
+                    cy = Math.max(50, Math.min(H - 50, cy));
+                    points.push({ x: cx, y: cy });
+                }
+                return {
+                    points,
+                    offset: 0,
+                    speed: 0.2 + Math.random() * 0.4,
+                    color: Math.random() > 0.5 ? '#00c896' : '#1a6fff',
+                    alpha: 0.3 + Math.random() * 0.5,
+                    width: 1 + Math.random() * 1.2,
+                };
+            }
 
-  for (let i = 0; i < 6; i++) lines.push(generateLine());
+            for (let i = 0; i < 6; i++) lines.push(generateLine());
 
-  function drawLine(line) {
-    if (line.points.length < 2) return;
-    ctx.save();
-    ctx.globalAlpha = line.alpha;
-    ctx.strokeStyle = line.color;
-    ctx.lineWidth = line.width;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = line.color;
-    ctx.beginPath();
+            function drawLine(line) {
+                if (line.points.length < 2) return;
+                ctx.save();
+                ctx.globalAlpha = line.alpha;
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = line.width;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = line.color;
+                ctx.beginPath();
 
-    const shift = (line.offset % (W + 200)) - 200;
-    ctx.save();
-    ctx.translate(shift, 0);
+                const shift = (line.offset % (W + 200)) - 200;
+                ctx.save();
+                ctx.translate(shift, 0);
 
-    ctx.moveTo(line.points[0].x, line.points[0].y);
-    for (let i = 1; i < line.points.length - 1; i++) {
-      const mid = {
-        x: (line.points[i].x + line.points[i + 1].x) / 2,
-        y: (line.points[i].y + line.points[i + 1].y) / 2,
-      };
-      ctx.quadraticCurveTo(line.points[i].x, line.points[i].y, mid.x, mid.y);
-    }
-    ctx.stroke();
-    ctx.restore();
-    ctx.restore();
-  }
+                ctx.moveTo(line.points[0].x, line.points[0].y);
+                for (let i = 1; i < line.points.length - 1; i++) {
+                    const mid = {
+                        x: (line.points[i].x + line.points[i + 1].x) / 2,
+                        y: (line.points[i].y + line.points[i + 1].y) / 2,
+                    };
+                    ctx.quadraticCurveTo(line.points[i].x, line.points[i].y, mid.x, mid.y);
+                }
+                ctx.stroke();
+                ctx.restore();
+                ctx.restore();
+            }
 
-  function animate() {
-    ctx.clearRect(0, 0, W, H);
-    lines.forEach(l => {
-      l.offset += l.speed;
-      if (l.offset > W + 200) {
-        Object.assign(l, generateLine());
-        l.offset = 0;
-      }
-      drawLine(l);
-    });
-    requestAnimationFrame(animate);
-  }
-  animate();
-})();
-
-
-/* ════════════════════════════════════════════════
-   SCROLL POPUP TRIGGER — 60% scroll on page1
-════════════════════════════════════════════════ */
-let popupShown = false;
-let popupDismissed = false;
-
-window.addEventListener('scroll', function() {
-  if (popupShown || popupDismissed) return;
-  const scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
-  if (scrollPct >= 0.6) {
-    popupShown = true;
-    document.getElementById('dimOverlay').classList.add('active');
-    setTimeout(() => {
-      document.getElementById('popup').classList.add('visible');
-    }, 300);
-  }
-});
-
-document.getElementById('btnNo').addEventListener('click', function() {
-  document.getElementById('popup').classList.remove('visible');
-  document.getElementById('dimOverlay').classList.remove('active');
-  popupDismissed = true;
-  popupShown = false;
-});
-
-document.getElementById('btnYes').addEventListener('click', function() {
-  document.getElementById('popup').classList.remove('visible');
-  // Fade to black
-  const curtain = document.getElementById('blackCurtain');
-  curtain.style.transition = 'opacity 1.2s ease';
-  curtain.classList.add('active');
-
-  setTimeout(() => {
-    // Show page2 while still black
-    document.getElementById('page2').classList.add('revealed');
-    document.getElementById('page1').style.display = 'none';
-    document.getElementById('dimOverlay').style.display = 'none';
-
-    // Start particles
-    initParticles();
-
-    // Lift curtain slowly
-    setTimeout(() => {
-      curtain.style.transition = 'opacity 2s ease';
-      curtain.style.opacity = '0';
-      setTimeout(() => {
-        curtain.style.display = 'none';
-        // Trigger hero animations
-        triggerHero();
-      }, 2200);
-    }, 600);
-
-  }, 1300);
-});
+            function animate() {
+                ctx.clearRect(0, 0, W, H);
+                lines.forEach(l => {
+                    l.offset += l.speed;
+                    if (l.offset > W + 200) {
+                        Object.assign(l, generateLine());
+                        l.offset = 0;
+                    }
+                    drawLine(l);
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
 
 
-/* ════════════════════════════════════════════════
-   PARTICLE SYSTEM — page2
-════════════════════════════════════════════════ */
-function initParticles() {
-  const canvas = document.getElementById('particleCanvas');
-  const ctx = canvas.getContext('2d');
-  let W, H;
-  const particles = [];
+        /* ════════════════════════════════════════════════
+           SCROLL POPUP TRIGGER — 60% scroll on page1
+        ════════════════════════════════════════════════ */
+        let popupShown = false;
+        let popupDismissed = false;
 
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resize();
-  window.addEventListener('resize', resize);
+        window.addEventListener('scroll', function () {
+            if (popupShown || popupDismissed) return;
+            const scrollPct = (window.scrollY + window.innerHeight) / document.body.scrollHeight;
+            if (scrollPct >= 0.6) {
+                popupShown = true;
+                document.getElementById('dimOverlay').classList.add('active');
+                setTimeout(() => {
+                    document.getElementById('popup').classList.add('visible');
+                }, 300);
+            }
+        });
 
-  const PARTICLE_COUNT = 120;
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    particles.push({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      r: 0.5 + Math.random() * 1.8,
-      alpha: 0.1 + Math.random() * 0.6,
-      speed: 0.1 + Math.random() * 0.3,
-      drift: (Math.random() - 0.5) * 0.4,
-      color: Math.random() > 0.6
-        ? `rgba(212,175,55,`
-        : Math.random() > 0.5
-          ? `rgba(255,255,255,`
-          : `rgba(180,140,80,`,
-    });
-  }
+        document.getElementById('btnNo').addEventListener('click', function () {
+            document.getElementById('popup').classList.remove('visible');
+            document.getElementById('dimOverlay').classList.remove('active');
+            popupDismissed = true;
+            popupShown = false;
+        });
 
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    particles.forEach(p => {
-      p.y -= p.speed;
-      p.x += p.drift;
-      p.alpha += (Math.random() - 0.5) * 0.02;
-      p.alpha = Math.max(0.05, Math.min(0.8, p.alpha));
+        document.getElementById('btnYes').addEventListener('click', function () {
+            document.getElementById('popup').classList.remove('visible');
+            // Fade to black
+            const curtain = document.getElementById('blackCurtain');
+            curtain.style.transition = 'opacity 1.2s ease';
+            curtain.classList.add('active');
 
-      if (p.y < -10) {
-        p.y = window.innerHeight + 10;
-        p.x = Math.random() * window.innerWidth;
-      }
-      if (p.x < -10 || p.x > window.innerWidth + 10) {
-        p.x = Math.random() * window.innerWidth;
-      }
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.color + p.alpha + ')';
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = p.color + '0.6)';
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-
-/* ════════════════════════════════════════════════
-   PAGE 2 — SECTION REVEAL LOGIC
-════════════════════════════════════════════════ */
-function triggerHero() {
-  // Delay hero slightly after curtain lifts
-  setTimeout(() => {
-    document.getElementById('mainHeading').classList.add('show');
-  }, 400);
-  setTimeout(() => {
-    document.getElementById('mainSub').classList.add('show');
-  }, 1200);
-
-  // Set up scroll-driven reveals for remaining sections
-  setupScrollReveals();
-}
-
-function setupScrollReveals() {
-  const page2 = document.getElementById('page2');
-
-  const observers = [];
-
-  function makeObserver(elements, delay) {
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          const d = el.dataset.delay ? parseFloat(el.dataset.delay) : 0;
-          setTimeout(() => el.classList.add('show', 'lit'), d * 1000);
-          obs.unobserve(el);
-        }
-      });
-    }, { threshold: 0.25 });
-    elements.forEach(el => obs.observe(el));
-    observers.push(obs);
-  }
-
-  // Section 1: Realization — line by line
-  const reLines = ['r1','r2','r3','r4','r5'];
-  reLines.forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.dataset.delay = i * 2.2;
-    const obs = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          reLines.forEach((rid, j) => {
             setTimeout(() => {
-              document.getElementById(rid).classList.add('lit');
-              // Brighten particles slightly (handled by animation)
-            }, j * 2200);
-          });
-          obs.disconnect();
+                // Show page2 while still black
+                document.getElementById('page2').classList.add('revealed');
+                document.getElementById('page1').style.display = 'none';
+                document.getElementById('dimOverlay').style.display = 'none';
+
+                // Start particles
+                initParticles();
+
+                // Lift curtain slowly
+                setTimeout(() => {
+                    curtain.style.transition = 'opacity 2s ease';
+                    curtain.style.opacity = '0';
+                    setTimeout(() => {
+                        curtain.style.display = 'none';
+                        // Trigger hero animations
+                        triggerHero();
+                    }, 2200);
+                }, 600);
+
+            }, 1300);
+        });
+
+
+        /* ════════════════════════════════════════════════
+           PARTICLE SYSTEM — page2
+        ════════════════════════════════════════════════ */
+        function initParticles() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            let W, H;
+            const particles = [];
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            const PARTICLE_COUNT = 120;
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    r: 0.5 + Math.random() * 1.8,
+                    alpha: 0.1 + Math.random() * 0.6,
+                    speed: 0.1 + Math.random() * 0.3,
+                    drift: (Math.random() - 0.5) * 0.4,
+                    color: Math.random() > 0.6
+                        ? `rgba(212,175,55,`
+                        : Math.random() > 0.5
+                            ? `rgba(255,255,255,`
+                            : `rgba(180,140,80,`,
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                particles.forEach(p => {
+                    p.y -= p.speed;
+                    p.x += p.drift;
+                    p.alpha += (Math.random() - 0.5) * 0.02;
+                    p.alpha = Math.max(0.05, Math.min(0.8, p.alpha));
+
+                    if (p.y < -10) {
+                        p.y = window.innerHeight + 10;
+                        p.x = Math.random() * window.innerWidth;
+                    }
+                    if (p.x < -10 || p.x > window.innerWidth + 10) {
+                        p.x = Math.random() * window.innerWidth;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color + p.alpha + ')';
+                    ctx.shadowBlur = 6;
+                    ctx.shadowColor = p.color + '0.6)';
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
         }
-      });
-    }, { threshold: 0.2 });
-    obs.observe(document.getElementById('r1'));
-  });
 
-  // Section 2: Who I Am Now
-  makeObserver([
-    document.getElementById('whoTitle'),
-    document.getElementById('whoText'),
-    document.getElementById('whoRefusal'),
-  ]);
 
-  const whoObs = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      document.getElementById('goldenGradient').classList.add('glow');
-      whoObs.disconnect();
-    }
-  }, { threshold: 0.3 });
-  whoObs.observe(document.getElementById('p2-who'));
+        /* ════════════════════════════════════════════════
+           PAGE 2 — SECTION REVEAL LOGIC
+        ════════════════════════════════════════════════ */
+        function triggerHero() {
+            // Delay hero slightly after curtain lifts
+            setTimeout(() => {
+                document.getElementById('mainHeading').classList.add('show');
+            }, 400);
+            setTimeout(() => {
+                document.getElementById('mainSub').classList.add('show');
+            }, 1200);
 
-  // Section 3: Promise
-  makeObserver([
-    document.getElementById('promiseTitle'),
-    document.getElementById('promiseText'),
-    document.getElementById('promiseClimax'),
-    document.getElementById('promiseFinal'),
-    document.getElementById('promiseIdentity'),
-  ]);
+            // Set up scroll-driven reveals for remaining sections
+            setupScrollReveals();
+        }
 
-  // Section 4: Climax
-  makeObserver([
-    document.getElementById('climaxLine1'),
-    document.getElementById('climaxLine2'),
-    document.getElementById('climaxLine3'),
-    document.getElementById('shieldEl'),
-  ]);
+        function setupScrollReveals() {
+            const page2 = document.getElementById('page2');
 
-  // Final
-  const finalObs = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      document.getElementById('warmBg').classList.add('glow');
-      setTimeout(() => document.getElementById('finalDedication').classList.add('show'), 500);
-      setTimeout(() => document.getElementById('finalSigWrap').classList.add('show'), 2500);
-      finalObs.disconnect();
-    }
-  }, { threshold: 0.2 });
-  finalObs.observe(document.getElementById('p2-final'));
-}
-</script>
+            const observers = [];
+
+            function makeObserver(elements, delay) {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const el = entry.target;
+                            const d = el.dataset.delay ? parseFloat(el.dataset.delay) : 0;
+                            setTimeout(() => el.classList.add('show', 'lit'), d * 1000);
+                            obs.unobserve(el);
+                        }
+                    });
+                }, { threshold: 0.25 });
+                elements.forEach(el => obs.observe(el));
+                observers.push(obs);
+            }
+
+            // Section 1: Realization — line by line
+            const reLines = ['r1', 'r2', 'r3', 'r4', 'r5'];
+            reLines.forEach((id, i) => {
+                const el = document.getElementById(id);
+                el.dataset.delay = i * 2.2;
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            reLines.forEach((rid, j) => {
+                                setTimeout(() => {
+                                    document.getElementById(rid).classList.add('lit');
+                                    // Brighten particles slightly (handled by animation)
+                                }, j * 2200);
+                            });
+                            obs.disconnect();
+                        }
+                    });
+                }, { threshold: 0.2 });
+                obs.observe(document.getElementById('r1'));
+            });
+
+            // Section 2: Who I Am Now
+            makeObserver([
+                document.getElementById('whoTitle'),
+                document.getElementById('whoText'),
+                document.getElementById('whoRefusal'),
+            ]);
+
+            const whoObs = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    document.getElementById('goldenGradient').classList.add('glow');
+                    whoObs.disconnect();
+                }
+            }, { threshold: 0.3 });
+            whoObs.observe(document.getElementById('p2-who'));
+
+            // Section 3: Promise
+            makeObserver([
+                document.getElementById('promiseTitle'),
+                document.getElementById('promiseText'),
+                document.getElementById('promiseClimax'),
+                document.getElementById('promiseFinal'),
+                document.getElementById('promiseIdentity'),
+            ]);
+
+            // Section 4: Climax
+            makeObserver([
+                document.getElementById('climaxLine1'),
+                document.getElementById('climaxLine2'),
+                document.getElementById('climaxLine3'),
+                document.getElementById('shieldEl'),
+            ]);
+
+            // Final
+            const finalObs = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    document.getElementById('warmBg').classList.add('glow');
+                    setTimeout(() => document.getElementById('finalDedication').classList.add('show'), 500);
+                    setTimeout(() => document.getElementById('finalSigWrap').classList.add('show'), 2500);
+                    finalObs.disconnect();
+                }
+            }, { threshold: 0.2 });
+            finalObs.observe(document.getElementById('p2-final'));
+        }
+    </script>
 
 </body>
+
 </html>
