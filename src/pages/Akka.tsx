@@ -1,25 +1,33 @@
-import { motion } from "framer-motion";
-import { Heart, Shield } from "lucide-react";
-import { useMemo } from "react";
+import { motion, useInView } from "framer-motion";
+import { useMemo, useRef } from "react";
 
-/* ─── Particles ─── */
+/* ════════════════════════════════
+   GOLDEN PARTICLE FIELD
+════════════════════════════════ */
 const GoldenParticles = () => {
   const particles = useMemo(
     () =>
-      Array.from({ length: 25 }, (_, i) => ({
+      Array.from({ length: 110 }, (_, i) => ({
         id: i,
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
-        delay: Math.random() * 8,
-        duration: 7 + Math.random() * 6,
-        size: 3 + Math.random() * 5,
-        opacity: 0.15 + Math.random() * 0.3,
+        delay: Math.random() * 10,
+        duration: 8 + Math.random() * 8,
+        size: 1 + Math.random() * 2.5,
+        opacity: 0.1 + Math.random() * 0.55,
+        color:
+          Math.random() > 0.55
+            ? "212,175,55"
+            : Math.random() > 0.5
+              ? "255,255,255"
+              : "180,140,80",
+        drift: (Math.random() - 0.5) * 30,
       })),
     []
   );
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -29,12 +37,12 @@ const GoldenParticles = () => {
             top: p.top,
             width: p.size,
             height: p.size,
-            background: `radial-gradient(circle, hsl(36 80% 60% / ${p.opacity}), transparent)`,
+            background: `radial-gradient(circle, rgba(${p.color},${p.opacity}), transparent)`,
           }}
           animate={{
-            y: [0, -100, -180, 0],
-            x: [0, 15, -15, 0],
-            opacity: [0, p.opacity, p.opacity * 0.4, 0],
+            y: [0, -120, -220, 0],
+            x: [0, p.drift, -p.drift * 0.5, 0],
+            opacity: [0, p.opacity, p.opacity * 0.35, 0],
           }}
           transition={{
             duration: p.duration,
@@ -48,385 +56,555 @@ const GoldenParticles = () => {
   );
 };
 
-/* ─── Line by line reveal helper ─── */
+/* ════════════════════════════════
+   REVEAL LINE — appears when scrolled into view
+════════════════════════════════ */
 const RevealLine = ({
   children,
   delay = 0,
-  className = "",
   bold = false,
+  large = false,
+  gold = false,
+  italic = false,
+  className = "",
 }: {
   children: React.ReactNode;
   delay?: number;
-  className?: string;
   bold?: boolean;
-}) => (
-  <motion.p
-    initial={{ opacity: 0, y: 14 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-40px" }}
-    transition={{ duration: 0.6, delay }}
-    className={`leading-relaxed ${
-      bold
-        ? "font-serif-display text-xl md:text-2xl font-semibold text-foreground"
-        : "text-lg md:text-xl text-muted-foreground"
-    } ${className}`}
-  >
-    {children}
-  </motion.p>
-);
+  large?: boolean;
+  gold?: boolean;
+  italic?: boolean;
+  className?: string;
+}) => {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
 
-/* ─── Section wrapper ─── */
+  return (
+    <motion.p
+      ref={ref}
+      initial={{ opacity: 0, y: 16 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 1.5, delay, ease: "easeOut" }}
+      className={className}
+      style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: large
+          ? "clamp(1.6rem, 3.5vw, 2.6rem)"
+          : "clamp(1.1rem, 2.2vw, 1.6rem)",
+        fontWeight: bold ? 700 : 400,
+        fontStyle: italic ? "italic" : "normal",
+        color: gold ? "#d4af37" : bold ? "#fff" : "rgba(255,255,255,0.78)",
+        lineHeight: 1.9,
+        marginBottom: "4px",
+        textShadow: gold ? "0 0 40px rgba(212,175,55,0.5)" : undefined,
+      }}
+    >
+      {children}
+    </motion.p>
+  );
+};
+
+/* ════════════════════════════════
+   SECTION WRAPPER
+════════════════════════════════ */
 const Section = ({
   children,
-  gradient = false,
   className = "",
+  id,
 }: {
   children: React.ReactNode;
-  gradient?: boolean;
   className?: string;
+  id?: string;
 }) => (
-  <section className={`py-24 md:py-36 ${gradient ? "bg-gradient-sunset" : "bg-background"} ${className}`}>
-    <div className="max-w-2xl mx-auto px-6 text-center">{children}</div>
+  <section
+    id={id}
+    className={`relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6 ${className}`}
+  >
+    <div className="max-w-2xl mx-auto w-full">{children}</div>
   </section>
 );
 
-/* ─── Hero ─── */
-const AkkaHero = () => (
-  <section className="relative min-h-screen flex items-center justify-center bg-warm-glow overflow-hidden">
-    <GoldenParticles />
-    <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.2 }}
-        className="mb-8"
-      >
-        <span className="akka-badge text-sm uppercase tracking-[0.4em]">AKKA</span>
-      </motion.div>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.4 }}
-        className="font-serif-display text-5xl md:text-7xl font-semibold text-foreground leading-tight mb-6"
-      >
-        AKKA… I Have Changed.
-      </motion.h1>
-
-      <motion.p
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.8 }}
-        className="text-lg md:text-xl text-muted-foreground font-light italic"
-      >
-        This is not just words. This is who I am choosing to become.
-      </motion.p>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.4 }}
-        className="mt-12"
-      >
-        <svg
-          className="mx-auto w-6 h-10 text-muted-foreground animate-bounce"
-          fill="none"
-          viewBox="0 0 24 40"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        >
-          <rect x="7" y="1" width="10" height="18" rx="5" />
-          <line x1="12" y1="6" x2="12" y2="10" />
-        </svg>
-      </motion.div>
-    </div>
-  </section>
-);
-
-/* ─── Realization ─── */
-const realizationLines = [
-  { text: "I didn't always understand you.", delay: 0 },
-  { text: "I didn't see how much you did for me.", delay: 0.15 },
-  { text: "I didn't value your care the way I should have.", delay: 0.3 },
-  { text: "", delay: 0 },
-  { text: "Instead of giving comfort, I caused hurt.", delay: 0.45 },
-  { text: "Instead of protecting you, I created pain.", delay: 0.6 },
-  { text: "", delay: 0 },
-  { text: "And the hardest truth is…", delay: 0.75 },
-  { text: "you never deserved that.", delay: 0.9, bold: true },
-];
-
-const RealizationSection = () => (
-  <Section gradient>
+/* ════════════════════════════════
+   SECTION HEADING
+════════════════════════════════ */
+const SectionHeading = ({
+  children,
+  delay = 0,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+}) => {
+  const ref = useRef<HTMLHeadingElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  return (
     <motion.h2
+      ref={ref}
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8 }}
-      className="font-serif-display text-3xl md:text-4xl font-semibold text-foreground mb-14"
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 1.2, delay }}
+      style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: "clamp(2rem, 4.5vw, 3.8rem)",
+        fontWeight: 700,
+        color: "#fff",
+        marginBottom: "52px",
+        lineHeight: 1.15,
+      }}
     >
-      My Realization
+      {children}
     </motion.h2>
-    <div className="space-y-5">
-      {realizationLines.map((line, i) =>
-        line.text === "" ? (
-          <div key={i} className="h-4" />
-        ) : (
-          <RevealLine key={i} delay={line.delay} bold={line.bold}>
-            {line.text}
-          </RevealLine>
-        )
-      )}
-    </div>
-  </Section>
-);
+  );
+};
 
-/* ─── Growth ─── */
-const growthLines = [
-  "I have reflected.",
-  "I have thought deeply about who I was…",
-  "and who I want to be.",
-  "",
-  "I don't want to be just your sibling by name.",
-  "",
-  "I want to be the brother you feel proud of.",
-  "The brother you feel safe with.",
-  "The brother you can rely on.",
-];
-
-const GrowthSection = () => (
-  <Section>
-    <motion.h2
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8 }}
-      className="font-serif-display text-3xl md:text-5xl font-bold text-foreground mb-14"
+/* ════════════════════════════════
+   HERO
+════════════════════════════════ */
+const Hero = () => (
+  <section
+    className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen px-6"
+    style={{ paddingTop: "120px", paddingBottom: "80px" }}
+  >
+    <motion.h1
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 3, ease: "easeOut" }}
+      style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: "clamp(2.8rem, 6vw, 5.8rem)",
+        fontWeight: 700,
+        color: "#fff",
+        letterSpacing: "-0.5px",
+        lineHeight: 1.1,
+        maxWidth: "900px",
+      }}
     >
-      I Have Grown.
-    </motion.h2>
-    <div className="relative">
-      {/* Soft glow behind text */}
-      <div
-        className="absolute inset-0 -z-10 opacity-20 blur-[80px] rounded-full"
-        style={{ background: "radial-gradient(ellipse, hsl(var(--warm-glow)), transparent)" }}
-      />
-      <div className="space-y-5">
-        {growthLines.map((line, i) =>
-          line === "" ? (
-            <div key={i} className="h-4" />
-          ) : (
-            <RevealLine key={i} delay={i * 0.1} bold={i >= growthLines.length - 3}>
-              {line}
-            </RevealLine>
-          )
-        )}
-      </div>
-    </div>
-  </Section>
-);
-
-/* ─── Promise ─── */
-const promiseBlock1 = [
-  { text: "I promise I have changed.", bold: true },
-  { text: "" },
-  { text: "If any issue arises, I will solve it calmly." },
-  { text: "I will listen before reacting." },
-  { text: "I will understand before speaking." },
-  { text: "I will never repeat the mistakes of my past." },
-  { text: "" },
-  { text: "I will not walk away." },
-  { text: "I will not disappear when things get hard." },
-  { text: "" },
-  { text: "In every situation —" },
-  { text: "whether it is joy or struggle," },
-  { text: "success or failure," },
-  { text: "light or darkness —" },
-  { text: "" },
-  { text: "I will stand beside you.", bold: true },
-  { text: "" },
-  { text: "Not sometimes." },
-  { text: "Not when it's easy." },
-  { text: "" },
-  { text: "Always.", bold: true },
-];
-
-const promiseBlock2 = [
-  { text: "As long as I live,", bold: true },
-  { text: "I will never leave you.", bold: true },
-  { text: "" },
-  { text: "I will be with you — as your brother." },
-  { text: "In every phase of life." },
-  { text: "In every battle." },
-  { text: "In every dream." },
-];
-
-const PromiseSection = () => (
-  <Section gradient>
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8 }}
-      className="mb-6"
-    >
-      <Shield className="mx-auto w-10 h-10 text-primary opacity-60" strokeWidth={1.5} />
-    </motion.div>
-
-    <motion.h2
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, delay: 0.1 }}
-      className="font-serif-display text-3xl md:text-5xl font-bold text-foreground mb-14"
-    >
-      My Promise As Your Brother
-    </motion.h2>
-
-    <div className="space-y-4">
-      {promiseBlock1.map((line, i) =>
-        line.text === "" ? (
-          <div key={`a${i}`} className="h-6" />
-        ) : (
-          <RevealLine key={`a${i}`} delay={(i % 8) * 0.08} bold={line.bold}>
-            {line.text}
-          </RevealLine>
-        )
-      )}
-    </div>
-
-    {/* Pause divider */}
-    <motion.div
-      initial={{ opacity: 0, scaleX: 0 }}
-      whileInView={{ opacity: 0.3, scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
-      className="h-px bg-border max-w-xs mx-auto my-16"
-    />
-
-    <div className="space-y-4">
-      {promiseBlock2.map((line, i) =>
-        line.text === "" ? (
-          <div key={`b${i}`} className="h-4" />
-        ) : (
-          <RevealLine key={`b${i}`} delay={(i % 6) * 0.1} bold={line.bold}>
-            {line.text}
-          </RevealLine>
-        )
-      )}
-    </div>
-  </Section>
-);
-
-/* ─── Forever ─── */
-const ForeverSection = () => (
-  <Section>
-    <motion.div
-      initial={{ opacity: 0, scale: 0 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-      className="mb-10"
-    >
-      <Heart className="mx-auto w-12 h-12 heart-color" fill="currentColor" strokeWidth={0} />
-    </motion.div>
+      AKKA… I Finally Understand
+      <br />
+      What You Mean To Me.
+    </motion.h1>
 
     <motion.p
       initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, delay: 0.2 }}
-      className="font-serif-display text-2xl md:text-4xl font-medium text-foreground leading-snug mb-2"
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 3, delay: 1, ease: "easeOut" }}
+      style={{
+        marginTop: "36px",
+        fontFamily: "'Playfair Display', serif",
+        fontSize: "clamp(1.1rem, 2.4vw, 1.65rem)",
+        color: "rgba(255,255,255,0.5)",
+        fontWeight: 300,
+        fontStyle: "italic",
+        lineHeight: 1.9,
+        maxWidth: "580px",
+      }}
     >
-      You deserved the brother you needed.
+      "Not just in words.
+      <br />
+      But in who I choose to become."
     </motion.p>
 
     <motion.div
       initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1, delay: 0.6 }}
-      className="h-8"
-    />
-
-    <motion.p
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.8, delay: 0.8 }}
-      className="font-serif-display text-2xl md:text-4xl font-semibold text-gradient-warm leading-snug"
+      animate={{ opacity: 1 }}
+      transition={{ delay: 3 }}
+      className="mt-16"
     >
-      And from today… I will be him.
-    </motion.p>
+      <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+        <svg
+          className="mx-auto"
+          width="20"
+          height="32"
+          viewBox="0 0 20 32"
+          fill="none"
+          stroke="rgba(212,175,55,0.35)"
+          strokeWidth="1.5"
+        >
+          <rect x="5" y="1" width="10" height="20" rx="5" />
+          <line x1="10" y1="6" x2="10" y2="11" />
+        </svg>
+      </motion.div>
+    </motion.div>
+  </section>
+);
+
+/* ════════════════════════════════
+   SECTION 1 — THE REALIZATION
+════════════════════════════════ */
+const RealizationSection = () => (
+  <Section>
+    <div className="space-y-2">
+      <RevealLine delay={0}>"I didn't understand you before."</RevealLine>
+      <div className="h-6" />
+      <RevealLine delay={0.15}>"I didn't value what you did for me."</RevealLine>
+      <div className="h-6" />
+      <RevealLine delay={0.3}>
+        "Instead of giving love…
+        <br />I gave hurt."
+      </RevealLine>
+      <div className="h-6" />
+      <RevealLine delay={0.45} bold>
+        "Instead of protecting you…
+        <br />I caused pain."
+      </RevealLine>
+      <div className="h-10" />
+      <RevealLine delay={0.8} bold large>
+        "And you never deserved that."
+      </RevealLine>
+    </div>
   </Section>
 );
 
-/* ─── Footer ─── */
-const AkkaFooter = () => (
-  <footer className="py-16 md:py-24 bg-background">
-    <div className="max-w-2xl mx-auto px-6 text-center">
+/* ════════════════════════════════
+   SECTION 2 — WHO I AM NOW
+════════════════════════════════ */
+const WhoSection = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <Section id="who">
+      {/* Sunrise golden radial glow */}
+      <motion.div
+        ref={ref}
+        animate={inView ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 4, ease: "easeOut" }}
+        className="absolute inset-x-0 bottom-0 pointer-events-none"
+        style={{
+          height: "70%",
+          background:
+            "radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.18) 0%, transparent 70%)",
+          zIndex: -1,
+        }}
+      />
+
+      <SectionHeading>"I Am Not The Same Person."</SectionHeading>
+
+      <div className="space-y-2 text-left mx-auto" style={{ maxWidth: "620px" }}>
+        <RevealLine italic>
+          "I have reflected.
+          <br />I have thought.
+          <br />I have grown.
+        </RevealLine>
+        <div className="h-4" />
+        <RevealLine italic>I looked at myself honestly.</RevealLine>
+        <div className="h-4" />
+        <RevealLine italic>
+          And I didn't like the brother I was becoming."
+        </RevealLine>
+        <div className="h-8" />
+        <RevealLine bold delay={0.4} gold large>
+          "But I refuse to stay that way."
+        </RevealLine>
+      </div>
+    </Section>
+  );
+};
+
+/* ════════════════════════════════
+   SECTION 3 — THE PROMISE
+════════════════════════════════ */
+const PromiseSection = () => (
+  <Section>
+    {/* Shield icon above heading */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.6 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+      className="mb-6"
+    >
+      <svg
+        width="48"
+        height="54"
+        viewBox="0 0 100 112"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="mx-auto"
+        style={{ filter: "drop-shadow(0 0 12px rgba(212,175,55,0.6))" }}
+      >
+        <path
+          d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
+          fill="rgba(212,175,55,0.1)"
+          stroke="rgba(212,175,55,0.8)"
+          strokeWidth="2.5"
+        />
+        <path
+          d="M35 54 L46 65 L68 44"
+          stroke="rgba(212,175,55,0.9)"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </motion.div>
+
+    <SectionHeading>"My Promise As Your Brother"</SectionHeading>
+
+    <div className="space-y-1 text-left mx-auto" style={{ maxWidth: "640px" }}>
+      <RevealLine bold large>"I promise I have changed."</RevealLine>
+      <div className="h-5" />
+      <RevealLine>
+        "I will never repeat the mistakes of my past.
+      </RevealLine>
+      <div className="h-3" />
+      <RevealLine>
+        If any issue arises,
+        <br />I will solve it calmly instead of overreacting.
+      </RevealLine>
+      <div className="h-3" />
+      <RevealLine>
+        I will understand before I speak.
+        <br />I will listen before I judge.
+      </RevealLine>
+      <div className="h-3" />
+      <RevealLine>
+        I will not let anger control me.
+        <br />I will not let ego hurt you again."
+      </RevealLine>
+
+      <div className="h-10" />
+
+      <RevealLine delay={0.1} large>
+        "In every situation —
+        <br />Good days.
+        <br />Bad days.
+        <br />Your happiest wins.
+        <br />Your toughest battles.
+      </RevealLine>
+      <div className="h-4" />
+      <RevealLine delay={0.2} bold large>
+        I will be there."
+      </RevealLine>
+
+      <div className="h-10" />
+
+      <RevealLine delay={0.3}>
+        "As long as I live,
+        <br />I will never leave you.
+      </RevealLine>
+      <div className="h-3" />
+      <RevealLine delay={0.4}>
+        As long as I breathe,
+        <br />I will stand beside you.
+      </RevealLine>
+      <div className="h-6" />
+      <RevealLine delay={0.5} italic>
+        Not just as a sibling by name.
+      </RevealLine>
+      <div className="h-3" />
+      <RevealLine delay={0.6} bold>But as your brother.</RevealLine>
+      <div className="h-3" />
+      <RevealLine delay={0.7} bold gold large>
+        The brother you needed."
+      </RevealLine>
+    </div>
+  </Section>
+);
+
+/* ════════════════════════════════
+   SECTION 4 — THE CLIMAX
+════════════════════════════════ */
+const ClimaxSection = () => {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <section
+      ref={ref}
+      className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6"
+    >
+      <div style={{ maxWidth: "700px" }}>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 2.5, ease: "easeOut" }}
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontWeight: 700,
+            color: "#fff",
+            lineHeight: 1.4,
+            marginBottom: "28px",
+          }}
+        >
+          "You deserved better from me.
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 2.5, delay: 0.9, ease: "easeOut" }}
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontWeight: 700,
+            color: "rgba(255,255,255,0.42)",
+            lineHeight: 1.4,
+            marginBottom: "28px",
+          }}
+        >
+          And from today…
+        </motion.p>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 2.5, delay: 1.8, ease: "easeOut" }}
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontWeight: 700,
+            color: "#f0d080",
+            lineHeight: 1.4,
+            textShadow: "0 0 60px rgba(212,175,55,0.6)",
+          }}
+        >
+          You will have it."
+        </motion.p>
+
+        {/* Glowing shield */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={inView ? { opacity: 1, scale: 1 } : {}}
+          transition={{ duration: 2, delay: 2.8, type: "spring", bounce: 0.35 }}
+          className="mt-16 mx-auto"
+          style={{ width: "fit-content" }}
+        >
+          <svg
+            width="80"
+            height="90"
+            viewBox="0 0 100 112"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ filter: "drop-shadow(0 0 24px rgba(212,175,55,0.85))" }}
+          >
+            <path
+              d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
+              fill="rgba(212,175,55,0.12)"
+              stroke="rgba(212,175,55,0.9)"
+              strokeWidth="2.5"
+            />
+            <path
+              d="M50 18 L80 30 L80 56 C80 72 50 94 50 94 C50 94 20 72 20 56 L20 30 Z"
+              fill="rgba(212,175,55,0.06)"
+              stroke="rgba(212,175,55,0.45)"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M33 54 L45 66 L70 42"
+              stroke="rgba(212,175,55,1)"
+              strokeWidth="4.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+/* ════════════════════════════════
+   FINAL SCENE
+════════════════════════════════ */
+const FinalScene = () => {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+
+  return (
+    <section
+      ref={ref}
+      className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6 overflow-hidden"
+    >
+      {/* Warm background glow */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: 4, ease: "easeOut" }}
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 50%, rgba(180,120,30,0.2) 0%, rgba(212,175,55,0.08) 50%, transparent 80%)",
+        }}
+      />
+
       <motion.p
         initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1 }}
-        className="font-serif-display text-xl md:text-2xl text-muted-foreground mb-10"
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ duration: 3, delay: 0.5 }}
+        style={{
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "clamp(1.2rem, 2.5vw, 1.9rem)",
+          color: "rgba(255,255,255,0.65)",
+          fontStyle: "italic",
+          lineHeight: 1.9,
+        }}
       >
-        For <span className="text-foreground font-medium">Anu</span> &{" "}
-        <span className="text-foreground font-medium">Kruthika</span> — With Love, Always.
+        "For Anu &amp; Kruthika —
+        <br />
+        With Love. Always."
       </motion.p>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-        className="inline-block"
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={inView ? { opacity: 1, scale: 1 } : {}}
+        transition={{ duration: 2, delay: 2.2 }}
+        className="mt-16"
       >
-        <motion.span
+        {/* Heartbeat pulse on the text shadow */}
+        <motion.div
           animate={{
-            boxShadow: [
-              "0 0 20px hsl(36 80% 50% / 0.2)",
-              "0 0 40px hsl(36 80% 50% / 0.4)",
-              "0 0 20px hsl(36 80% 50% / 0.2)",
+            textShadow: [
+              "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
+              "0 0 70px rgba(212,175,55,1.0), 0 0 130px rgba(212,175,55,0.7), 0 0 200px rgba(212,175,55,0.3)",
+              "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
+              "0 0 55px rgba(212,175,55,0.9), 0 0 100px rgba(212,175,55,0.5)",
+              "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
             ],
+            scale: [1, 1.055, 1, 1.028, 1],
           }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="inline-block px-8 py-3 rounded-full text-sm font-bold uppercase tracking-[0.4em]"
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           style={{
-            background: "linear-gradient(135deg, hsl(36 80% 55%), hsl(24 70% 50%))",
-            color: "hsl(30 25% 97%)",
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(3rem, 8vw, 7.5rem)",
+            fontWeight: 900,
+            color: "#d4af37",
+            letterSpacing: "10px",
+            display: "inline-block",
           }}
         >
-          AKKA
-        </motion.span>
+          ✨ AKKA ✨
+        </motion.div>
+
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.12, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          style={{ fontSize: "2.5rem", marginTop: "16px" }}
+        >
+          💛
+        </motion.div>
       </motion.div>
+    </section>
+  );
+};
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 0.4 }}
-        viewport={{ once: true }}
-        transition={{ duration: 1, delay: 0.6 }}
-        className="mt-12 h-px bg-border max-w-xs mx-auto"
-      />
-    </div>
-  </footer>
-);
-
-/* ─── Page ─── */
+/* ════════════════════════════════
+   PAGE
+════════════════════════════════ */
 const Akka = () => (
   <motion.main
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    transition={{ duration: 1.2 }}
-    className="overflow-x-hidden"
+    transition={{ duration: 1.6, ease: "easeOut" }}
+    style={{ background: "#000", minHeight: "100vh", overflow: "hidden" }}
   >
-    <AkkaHero />
+    <GoldenParticles />
+    <Hero />
     <RealizationSection />
-    <GrowthSection />
+    <WhoSection />
     <PromiseSection />
-    <ForeverSection />
-    <AkkaFooter />
+    <ClimaxSection />
+    <FinalScene />
   </motion.main>
 );
 
