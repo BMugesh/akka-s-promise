@@ -1,33 +1,50 @@
-import { motion, useInView } from "framer-motion";
+import {
+  motion,
+  useInView,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { useMemo, useRef } from "react";
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════ */
+
+/** Returns fewer particles on small screens to avoid jank */
+const useParticleCount = () =>
+  typeof window !== "undefined" && window.innerWidth < 640 ? 55 : 110;
+
+/* ════════════════════════════════════════════════
    GOLDEN PARTICLE FIELD
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const GoldenParticles = () => {
+  const count = useParticleCount();
   const particles = useMemo(
     () =>
-      Array.from({ length: 110 }, (_, i) => ({
+      Array.from({ length: count }, (_, i) => ({
         id: i,
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 100}%`,
         delay: Math.random() * 10,
         duration: 8 + Math.random() * 8,
-        size: 1 + Math.random() * 2.5,
-        opacity: 0.1 + Math.random() * 0.55,
+        size: 1 + Math.random() * 2.2,
+        opacity: 0.1 + Math.random() * 0.5,
         color:
           Math.random() > 0.55
             ? "212,175,55"
             : Math.random() > 0.5
               ? "255,255,255"
               : "180,140,80",
-        drift: (Math.random() - 0.5) * 30,
+        drift: (Math.random() - 0.5) * 28,
       })),
-    []
+    [count]
   );
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: 0 }}>
+    <div
+      className="fixed inset-0 overflow-hidden pointer-events-none"
+      style={{ zIndex: 0 }}
+    >
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -40,9 +57,9 @@ const GoldenParticles = () => {
             background: `radial-gradient(circle, rgba(${p.color},${p.opacity}), transparent)`,
           }}
           animate={{
-            y: [0, -120, -220, 0],
+            y: [0, -110, -200, 0],
             x: [0, p.drift, -p.drift * 0.5, 0],
-            opacity: [0, p.opacity, p.opacity * 0.35, 0],
+            opacity: [0, p.opacity, p.opacity * 0.3, 0],
           }}
           transition={{
             duration: p.duration,
@@ -56,9 +73,51 @@ const GoldenParticles = () => {
   );
 };
 
-/* ════════════════════════════════
-   REVEAL LINE — appears when scrolled into view
-════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   PARALLAX WRAPPER
+   Each section gets a subtle vertical translate tied
+   to the page scroll — creates layered depth.
+════════════════════════════════════════════════ */
+const ParallaxSection = ({
+  children,
+  speed = 0.12,         // 0 = no parallax, 0.2 = strong
+  className = "",
+  id,
+  style = {},
+}: {
+  children: React.ReactNode;
+  speed?: number;
+  className?: string;
+  id?: string;
+  style?: React.CSSProperties;
+}) => {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  // Map scroll 0→1 into a subtle upward nudge
+  const y = useTransform(scrollYProgress, [0, 1], [`${speed * 80}px`, `-${speed * 80}px`]);
+
+  return (
+    <section
+      ref={ref}
+      id={id}
+      className={`relative z-10 flex flex-col items-center justify-center text-center ${className}`}
+      style={{ minHeight: "100svh", paddingTop: "80px", paddingBottom: "80px", ...style }}
+    >
+      <motion.div
+        style={{ y, width: "100%", maxWidth: "680px", margin: "0 auto", paddingLeft: "1rem", paddingRight: "1rem" }}
+      >
+        {children}
+      </motion.div>
+    </section>
+  );
+};
+
+/* ════════════════════════════════════════════════
+   REVEAL LINE
+════════════════════════════════════════════════ */
 const RevealLine = ({
   children,
   delay = 0,
@@ -66,7 +125,7 @@ const RevealLine = ({
   large = false,
   gold = false,
   italic = false,
-  className = "",
+  center = false,
 }: {
   children: React.ReactNode;
   delay?: number;
@@ -74,29 +133,29 @@ const RevealLine = ({
   large?: boolean;
   gold?: boolean;
   italic?: boolean;
-  className?: string;
+  center?: boolean;
 }) => {
   const ref = useRef<HTMLParagraphElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin: "-50px" });
 
   return (
     <motion.p
       ref={ref}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 18 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 1.5, delay, ease: "easeOut" }}
-      className={className}
+      transition={{ duration: 1.4, delay, ease: "easeOut" }}
       style={{
         fontFamily: "'Playfair Display', serif",
         fontSize: large
-          ? "clamp(1.6rem, 3.5vw, 2.6rem)"
-          : "clamp(1.1rem, 2.2vw, 1.6rem)",
+          ? "clamp(1.4rem, 4.5vw, 2.5rem)"
+          : "clamp(1rem, 3vw, 1.55rem)",
         fontWeight: bold ? 700 : 400,
         fontStyle: italic ? "italic" : "normal",
-        color: gold ? "#d4af37" : bold ? "#fff" : "rgba(255,255,255,0.78)",
-        lineHeight: 1.9,
+        color: gold ? "#d4af37" : bold ? "#fff" : "rgba(255,255,255,0.8)",
+        lineHeight: 1.85,
         marginBottom: "4px",
-        textShadow: gold ? "0 0 40px rgba(212,175,55,0.5)" : undefined,
+        textAlign: center ? "center" : "left",
+        textShadow: gold ? "0 0 36px rgba(212,175,55,0.5)" : undefined,
       }}
     >
       {children}
@@ -104,29 +163,9 @@ const RevealLine = ({
   );
 };
 
-/* ════════════════════════════════
-   SECTION WRAPPER
-════════════════════════════════ */
-const Section = ({
-  children,
-  className = "",
-  id,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  id?: string;
-}) => (
-  <section
-    id={id}
-    className={`relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6 ${className}`}
-  >
-    <div className="max-w-2xl mx-auto w-full">{children}</div>
-  </section>
-);
-
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
    SECTION HEADING
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const SectionHeading = ({
   children,
   delay = 0,
@@ -135,20 +174,21 @@ const SectionHeading = ({
   delay?: number;
 }) => {
   const ref = useRef<HTMLHeadingElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
     <motion.h2
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 22 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 1.2, delay }}
       style={{
         fontFamily: "'Playfair Display', serif",
-        fontSize: "clamp(2rem, 4.5vw, 3.8rem)",
+        fontSize: "clamp(1.75rem, 5vw, 3.6rem)",
         fontWeight: 700,
         color: "#fff",
-        marginBottom: "52px",
-        lineHeight: 1.15,
+        marginBottom: "40px",
+        lineHeight: 1.18,
+        textAlign: "center",
       }}
     >
       {children}
@@ -156,171 +196,203 @@ const SectionHeading = ({
   );
 };
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
+   SPACER
+════════════════════════════════════════════════ */
+const Sp = ({ size = 6 }: { size?: number }) => (
+  <div style={{ height: `${size * 4}px` }} />
+);
+
+/* ════════════════════════════════════════════════
    HERO
-════════════════════════════════ */
-const Hero = () => (
-  <section
-    className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen px-6"
-    style={{ paddingTop: "120px", paddingBottom: "80px" }}
-  >
-    <motion.h1
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 3, ease: "easeOut" }}
-      style={{
-        fontFamily: "'Playfair Display', serif",
-        fontSize: "clamp(2.8rem, 6vw, 5.8rem)",
-        fontWeight: 700,
-        color: "#fff",
-        letterSpacing: "-0.5px",
-        lineHeight: 1.1,
-        maxWidth: "900px",
-      }}
-    >
-      AKKA… I Finally Understand
-      <br />
-      What You Mean To Me.
-    </motion.h1>
-
-    <motion.p
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 3, delay: 1, ease: "easeOut" }}
-      style={{
-        marginTop: "36px",
-        fontFamily: "'Playfair Display', serif",
-        fontSize: "clamp(1.1rem, 2.4vw, 1.65rem)",
-        color: "rgba(255,255,255,0.5)",
-        fontWeight: 300,
-        fontStyle: "italic",
-        lineHeight: 1.9,
-        maxWidth: "580px",
-      }}
-    >
-      "Not just in words.
-      <br />
-      But in who I choose to become."
-    </motion.p>
-
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 3 }}
-      className="mt-16"
-    >
-      <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-        <svg
-          className="mx-auto"
-          width="20"
-          height="32"
-          viewBox="0 0 20 32"
-          fill="none"
-          stroke="rgba(212,175,55,0.35)"
-          strokeWidth="1.5"
-        >
-          <rect x="5" y="1" width="10" height="20" rx="5" />
-          <line x1="10" y1="6" x2="10" y2="11" />
-        </svg>
-      </motion.div>
-    </motion.div>
-  </section>
-);
-
-/* ════════════════════════════════
-   SECTION 1 — THE REALIZATION
-════════════════════════════════ */
-const RealizationSection = () => (
-  <Section>
-    <div className="space-y-2">
-      <RevealLine delay={0}>"I didn't understand you before."</RevealLine>
-      <div className="h-6" />
-      <RevealLine delay={0.15}>"I didn't value what you did for me."</RevealLine>
-      <div className="h-6" />
-      <RevealLine delay={0.3}>
-        "Instead of giving love…
-        <br />I gave hurt."
-      </RevealLine>
-      <div className="h-6" />
-      <RevealLine delay={0.45} bold>
-        "Instead of protecting you…
-        <br />I caused pain."
-      </RevealLine>
-      <div className="h-10" />
-      <RevealLine delay={0.8} bold large>
-        "And you never deserved that."
-      </RevealLine>
-    </div>
-  </Section>
-);
-
-/* ════════════════════════════════
-   SECTION 2 — WHO I AM NOW
-════════════════════════════════ */
-const WhoSection = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
+════════════════════════════════════════════════ */
+const Hero = () => {
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  // Hero title moves up slightly faster than scroll — classic parallax
+  const titleY = useTransform(scrollYProgress, [0, 1], ["0px", "-60px"]);
+  const subY = useTransform(scrollYProgress, [0, 1], ["0px", "-30px"]);
 
   return (
-    <Section id="who">
-      {/* Sunrise golden radial glow */}
+    <section
+      ref={ref}
+      className="relative z-10 flex flex-col items-center justify-center text-center"
+      style={{ minHeight: "100svh", padding: "80px 16px" }}
+    >
+      <motion.h1
+        style={{
+          y: titleY,
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "clamp(2rem, 7vw, 5.5rem)",
+          fontWeight: 700,
+          color: "#fff",
+          letterSpacing: "-0.3px",
+          lineHeight: 1.12,
+          maxWidth: "820px",
+          padding: "0 8px",
+        }}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 3, ease: "easeOut" }}
+      >
+        AKKA… I Finally Understand
+        <br />
+        What You Mean To Me.
+      </motion.h1>
+
+      <motion.p
+        style={{
+          y: subY,
+          marginTop: "28px",
+          fontFamily: "'Playfair Display', serif",
+          fontSize: "clamp(0.95rem, 3vw, 1.6rem)",
+          color: "rgba(255,255,255,0.5)",
+          fontWeight: 300,
+          fontStyle: "italic",
+          lineHeight: 1.9,
+          maxWidth: "520px",
+          padding: "0 8px",
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 3, delay: 1, ease: "easeOut" }}
+      >
+        "Not just in words.
+        <br />
+        But in who I choose to become."
+      </motion.p>
+
       <motion.div
-        ref={ref}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 3 }}
+        className="mt-12"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <svg
+            className="mx-auto"
+            width="20"
+            height="32"
+            viewBox="0 0 20 32"
+            fill="none"
+            stroke="rgba(212,175,55,0.35)"
+            strokeWidth="1.5"
+          >
+            <rect x="5" y="1" width="10" height="20" rx="5" />
+            <line x1="10" y1="6" x2="10" y2="11" />
+          </svg>
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+};
+
+/* ════════════════════════════════════════════════
+   SECTION 1 — THE REALIZATION
+════════════════════════════════════════════════ */
+const RealizationSection = () => (
+  <ParallaxSection speed={0.1}>
+    <RevealLine center delay={0}>
+      "I didn't understand you before."
+    </RevealLine>
+    <Sp />
+    <RevealLine center delay={0.15}>
+      "I didn't value what you did for me."
+    </RevealLine>
+    <Sp />
+    <RevealLine center delay={0.3}>
+      "Instead of giving love…
+      <br />I gave hurt."
+    </RevealLine>
+    <Sp />
+    <RevealLine center delay={0.45} bold>
+      "Instead of protecting you…
+      <br />I caused pain."
+    </RevealLine>
+    <Sp size={10} />
+    <RevealLine center delay={0.8} bold large>
+      "And you never deserved that."
+    </RevealLine>
+  </ParallaxSection>
+);
+
+/* ════════════════════════════════════════════════
+   SECTION 2 — WHO I AM NOW
+════════════════════════════════════════════════ */
+const WhoSection = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
+
+  return (
+    <ParallaxSection speed={0.14} id="who" style={{ position: "relative", overflow: "hidden" }}>
+      {/* Sunrise golden glow — parallax-aware background */}
+      <motion.div
+        ref={sectionRef}
         animate={inView ? { opacity: 1 } : { opacity: 0 }}
         transition={{ duration: 4, ease: "easeOut" }}
-        className="absolute inset-x-0 bottom-0 pointer-events-none"
         style={{
-          height: "70%",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "65%",
           background:
-            "radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.18) 0%, transparent 70%)",
+            "radial-gradient(ellipse at 50% 100%, rgba(212,175,55,0.2) 0%, transparent 70%)",
           zIndex: -1,
+          pointerEvents: "none",
         }}
       />
 
       <SectionHeading>"I Am Not The Same Person."</SectionHeading>
 
-      <div className="space-y-2 text-left mx-auto" style={{ maxWidth: "620px" }}>
+      <div style={{ textAlign: "left" }}>
         <RevealLine italic>
           "I have reflected.
           <br />I have thought.
           <br />I have grown.
         </RevealLine>
-        <div className="h-4" />
+        <Sp size={4} />
         <RevealLine italic>I looked at myself honestly.</RevealLine>
-        <div className="h-4" />
+        <Sp size={4} />
         <RevealLine italic>
           And I didn't like the brother I was becoming."
         </RevealLine>
-        <div className="h-8" />
-        <RevealLine bold delay={0.4} gold large>
+        <Sp size={8} />
+        <RevealLine bold delay={0.4} gold large center>
           "But I refuse to stay that way."
         </RevealLine>
       </div>
-    </Section>
+    </ParallaxSection>
   );
 };
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
    SECTION 3 — THE PROMISE
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const PromiseSection = () => (
-  <Section>
-    {/* Shield icon above heading */}
+  <ParallaxSection speed={0.1}>
+    {/* Shield */}
     <motion.div
       initial={{ opacity: 0, scale: 0.6 }}
       whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "-80px" }}
+      viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-      className="mb-6"
+      style={{ marginBottom: "24px" }}
     >
       <svg
-        width="48"
-        height="54"
+        width="44"
+        height="50"
         viewBox="0 0 100 112"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="mx-auto"
-        style={{ filter: "drop-shadow(0 0 12px rgba(212,175,55,0.6))" }}
+        style={{
+          margin: "0 auto",
+          display: "block",
+          filter: "drop-shadow(0 0 12px rgba(212,175,55,0.6))",
+        }}
       >
         <path
           d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
@@ -340,29 +412,31 @@ const PromiseSection = () => (
 
     <SectionHeading>"My Promise As Your Brother"</SectionHeading>
 
-    <div className="space-y-1 text-left mx-auto" style={{ maxWidth: "640px" }}>
-      <RevealLine bold large>"I promise I have changed."</RevealLine>
-      <div className="h-5" />
+    <div style={{ textAlign: "left" }}>
+      <RevealLine bold large>
+        "I promise I have changed."
+      </RevealLine>
+      <Sp size={5} />
       <RevealLine>
         "I will never repeat the mistakes of my past.
       </RevealLine>
-      <div className="h-3" />
+      <Sp size={3} />
       <RevealLine>
         If any issue arises,
         <br />I will solve it calmly instead of overreacting.
       </RevealLine>
-      <div className="h-3" />
+      <Sp size={3} />
       <RevealLine>
         I will understand before I speak.
         <br />I will listen before I judge.
       </RevealLine>
-      <div className="h-3" />
+      <Sp size={3} />
       <RevealLine>
         I will not let anger control me.
         <br />I will not let ego hurt you again."
       </RevealLine>
 
-      <div className="h-10" />
+      <Sp size={10} />
 
       <RevealLine delay={0.1} large>
         "In every situation —
@@ -371,60 +445,81 @@ const PromiseSection = () => (
         <br />Your happiest wins.
         <br />Your toughest battles.
       </RevealLine>
-      <div className="h-4" />
+      <Sp size={4} />
       <RevealLine delay={0.2} bold large>
         I will be there."
       </RevealLine>
 
-      <div className="h-10" />
+      <Sp size={10} />
 
       <RevealLine delay={0.3}>
         "As long as I live,
         <br />I will never leave you.
       </RevealLine>
-      <div className="h-3" />
+      <Sp size={3} />
       <RevealLine delay={0.4}>
         As long as I breathe,
         <br />I will stand beside you.
       </RevealLine>
-      <div className="h-6" />
+      <Sp size={6} />
       <RevealLine delay={0.5} italic>
         Not just as a sibling by name.
       </RevealLine>
-      <div className="h-3" />
-      <RevealLine delay={0.6} bold>But as your brother.</RevealLine>
-      <div className="h-3" />
-      <RevealLine delay={0.7} bold gold large>
+      <Sp size={3} />
+      <RevealLine delay={0.6} bold>
+        But as your brother.
+      </RevealLine>
+      <Sp size={3} />
+      <RevealLine delay={0.7} bold gold large center>
         The brother you needed."
       </RevealLine>
     </div>
-  </Section>
+  </ParallaxSection>
 );
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
    SECTION 4 — THE CLIMAX
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const ClimaxSection = () => {
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const bgY = useTransform(scrollYProgress, [0, 1], ["-20px", "20px"]);
 
   return (
     <section
       ref={ref}
-      className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6"
+      className="relative z-10 flex flex-col items-center justify-center text-center"
+      style={{ minHeight: "100svh", padding: "80px 16px" }}
     >
-      <div style={{ maxWidth: "700px" }}>
+      {/* Subtle background blur blob parallax */}
+      <motion.div
+        style={{
+          y: bgY,
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.07) 0%, transparent 65%)",
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      />
+
+      <div style={{ maxWidth: "680px", width: "100%", padding: "0 8px" }}>
         <motion.p
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 2.5, ease: "easeOut" }}
           style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontSize: "clamp(1.7rem, 5.5vw, 4rem)",
             fontWeight: 700,
             color: "#fff",
             lineHeight: 1.4,
-            marginBottom: "28px",
+            marginBottom: "24px",
           }}
         >
           "You deserved better from me.
@@ -436,11 +531,11 @@ const ClimaxSection = () => {
           transition={{ duration: 2.5, delay: 0.9, ease: "easeOut" }}
           style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontSize: "clamp(1.7rem, 5.5vw, 4rem)",
             fontWeight: 700,
             color: "rgba(255,255,255,0.42)",
             lineHeight: 1.4,
-            marginBottom: "28px",
+            marginBottom: "24px",
           }}
         >
           And from today…
@@ -452,7 +547,7 @@ const ClimaxSection = () => {
           transition={{ duration: 2.5, delay: 1.8, ease: "easeOut" }}
           style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(2rem, 4.5vw, 4rem)",
+            fontSize: "clamp(1.7rem, 5.5vw, 4rem)",
             fontWeight: 700,
             color: "#f0d080",
             lineHeight: 1.4,
@@ -467,16 +562,19 @@ const ClimaxSection = () => {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={inView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 2, delay: 2.8, type: "spring", bounce: 0.35 }}
-          className="mt-16 mx-auto"
-          style={{ width: "fit-content" }}
+          style={{ marginTop: "56px" }}
         >
           <svg
-            width="80"
-            height="90"
+            width="72"
+            height="80"
             viewBox="0 0 100 112"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            style={{ filter: "drop-shadow(0 0 24px rgba(212,175,55,0.85))" }}
+            style={{
+              display: "block",
+              margin: "0 auto",
+              filter: "drop-shadow(0 0 24px rgba(212,175,55,0.85))",
+            }}
           >
             <path
               d="M50 4 L92 20 L92 56 C92 80 50 108 50 108 C50 108 8 80 8 56 L8 20 Z"
@@ -504,28 +602,38 @@ const ClimaxSection = () => {
   );
 };
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
    FINAL SCENE
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const FinalScene = () => {
   const ref = useRef<HTMLElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  // Warm glow blob rises as you scroll into the final section
+  const glowY = useTransform(scrollYProgress, [0, 1], ["30px", "-30px"]);
 
   return (
     <section
       ref={ref}
-      className="relative z-10 flex flex-col items-center justify-center text-center min-h-screen py-28 px-6 overflow-hidden"
+      className="relative z-10 flex flex-col items-center justify-center text-center overflow-hidden"
+      style={{ minHeight: "100svh", padding: "80px 16px" }}
     >
-      {/* Warm background glow */}
+      {/* Warm parallax glow */}
       <motion.div
+        style={{
+          y: glowY,
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse at 50% 50%, rgba(180,120,30,0.22) 0%, rgba(212,175,55,0.08) 50%, transparent 80%)",
+          pointerEvents: "none",
+        }}
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
         transition={{ duration: 4, ease: "easeOut" }}
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 50%, rgba(180,120,30,0.2) 0%, rgba(212,175,55,0.08) 50%, transparent 80%)",
-        }}
       />
 
       <motion.p
@@ -534,7 +642,7 @@ const FinalScene = () => {
         transition={{ duration: 3, delay: 0.5 }}
         style={{
           fontFamily: "'Playfair Display', serif",
-          fontSize: "clamp(1.2rem, 2.5vw, 1.9rem)",
+          fontSize: "clamp(1.1rem, 3.5vw, 1.85rem)",
           color: "rgba(255,255,255,0.65)",
           fontStyle: "italic",
           lineHeight: 1.9,
@@ -549,14 +657,13 @@ const FinalScene = () => {
         initial={{ opacity: 0, scale: 0.85 }}
         animate={inView ? { opacity: 1, scale: 1 } : {}}
         transition={{ duration: 2, delay: 2.2 }}
-        className="mt-16"
+        style={{ marginTop: "56px" }}
       >
-        {/* Heartbeat pulse on the text shadow */}
         <motion.div
           animate={{
             textShadow: [
               "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
-              "0 0 70px rgba(212,175,55,1.0), 0 0 130px rgba(212,175,55,0.7), 0 0 200px rgba(212,175,55,0.3)",
+              "0 0 70px rgba(212,175,55,1.0), 0 0 130px rgba(212,175,55,0.7)",
               "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
               "0 0 55px rgba(212,175,55,0.9), 0 0 100px rgba(212,175,55,0.5)",
               "0 0 40px rgba(212,175,55,0.8), 0 0 80px rgba(212,175,55,0.4)",
@@ -566,10 +673,10 @@ const FinalScene = () => {
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
           style={{
             fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(3rem, 8vw, 7.5rem)",
+            fontSize: "clamp(2.4rem, 9vw, 7rem)",
             fontWeight: 900,
             color: "#d4af37",
-            letterSpacing: "10px",
+            letterSpacing: "clamp(4px, 2vw, 10px)",
             display: "inline-block",
           }}
         >
@@ -579,7 +686,7 @@ const FinalScene = () => {
         <motion.div
           animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.12, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          style={{ fontSize: "2.5rem", marginTop: "16px" }}
+          style={{ fontSize: "clamp(1.8rem, 5vw, 2.5rem)", marginTop: "14px" }}
         >
           💛
         </motion.div>
@@ -588,15 +695,15 @@ const FinalScene = () => {
   );
 };
 
-/* ════════════════════════════════
+/* ════════════════════════════════════════════════
    PAGE
-════════════════════════════════ */
+════════════════════════════════════════════════ */
 const Akka = () => (
   <motion.main
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ duration: 1.6, ease: "easeOut" }}
-    style={{ background: "#000", minHeight: "100vh", overflow: "hidden" }}
+    style={{ background: "#000", minHeight: "100vh", overflowX: "hidden" }}
   >
     <GoldenParticles />
     <Hero />
